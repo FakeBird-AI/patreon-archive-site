@@ -3,21 +3,25 @@ window.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("login-btn");
   const status = document.getElementById("status");
 
-  fetch("https://https://patreon-archive-site.fakebird279.workers.dev
-/verify", {
-    credentials: "include"
-  })
+  // あなたの Cloudflare Workers のURLに置き換えてください！
+  const VERIFY_URL = "https://patreon-archive-site.fakebird279.workers.dev/verify";
+  const LOGIN_URL = "https://patreon-archive-site.fakebird279.workers.dev/login";
+
+  // Discordログイン後の状態をチェック
+  fetch(VERIFY_URL, { credentials: "include" })
     .then(res => res.json())
     .then(data => {
       if (data.authorized) {
-        status.textContent = `ようこそ、${data.username}さん！`;
+        status.textContent = `ようこそ、${data.username} さん！`;
         archiveDiv.classList.remove("hidden");
         loginBtn.classList.add("hidden");
       } else {
         status.textContent = "ログインが必要です。";
         loginBtn.classList.remove("hidden");
-        archiveDiv.classList.add("hidden");
       }
     });
-});
 
+  loginBtn.addEventListener("click", () => {
+    window.location.href = LOGIN_URL;
+  });
+});

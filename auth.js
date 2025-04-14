@@ -3,7 +3,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("login-btn");
   const status = document.getElementById("status");
 
-  fetch("https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev/verify", {
+  fetch("https://https://patreon-archive-site.fakebird279.workers.dev
+/verify", {
     credentials: "include"
   })
     .then(res => res.json())

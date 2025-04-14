@@ -3,14 +3,13 @@ window.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("login-btn");
   const status = document.getElementById("status");
 
-  // あなたの Cloudflare Workers のURLに置き換えてください！
   const VERIFY_URL = "https://patreon-archive-site.fakebird279.workers.dev/verify";
   const LOGIN_URL = "https://patreon-archive-site.fakebird279.workers.dev/login";
 
-  // Discordログイン後の状態をチェック
   fetch(VERIFY_URL, { credentials: "include" })
     .then(res => res.json())
     .then(data => {
+      console.log("🔁 /verify 結果:", data); // ← デバッグ用ログ
       if (data.authorized) {
         status.textContent = `ようこそ、${data.username} さん！`;
         archiveDiv.classList.remove("hidden");
@@ -18,7 +17,12 @@ window.addEventListener("DOMContentLoaded", () => {
       } else {
         status.textContent = "ログインが必要です。";
         loginBtn.classList.remove("hidden");
+        archiveDiv.classList.add("hidden"); // ← 🔥 ここを追加！
       }
+    })
+    .catch(err => {
+      console.error("❌ /verify 通信エラー:", err);
+      status.textContent = "ログイン状態の確認中にエラーが発生しました。";
     });
 
   loginBtn.addEventListener("click", () => {

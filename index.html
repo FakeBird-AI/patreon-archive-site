@@ -1,11 +1,49 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>支援者専用アーカイブ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patreon支援者専用アーカイブ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f4f4f4;
+    }
+    .hidden {
+      display: none;
+    }
+    #archive {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+    #login-btn {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+  <script src="auth.js" defer></script>
 </head>
 <body>
-  <h1>支援者限定アーカイブ</h1>
-  <button onclick="window.location.href='https://あなたのCloudflareWorkersURL/login'">Discordでログイン</button>
+
+  <h1>Patreon支援者限定アーカイブサイト</h1>
+  <p id="status">ログイン状態を確認中...</p>
+
+  <!-- Discordログインボタン -->
+  <button id="login-btn" class="hidden">
+    Discordでログイン
+  </button>
+
+  <!-- アーカイブリンク（認証済みユーザーのみ表示） -->
+  <div id="archive" class="hidden">
+    ✅ 認証成功！以下からアーカイブにアクセスできます：<br />
+    <a href="https://drive.google.com/your-archive-link" target="_blank">
+      ▶ 保存アーカイブを見る
+    </a>
+  </div>
+
 </body>
 </html>

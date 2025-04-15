@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (sessionToken) {
     // トークンが存在する場合、/verify APIに問い合わせ
-    fetch("https://<YOUR_WORKER_SUBDOMAIN>.workers.dev/verify", {
+    fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
       method: "GET",
       credentials: "include",  // Cookie送信を許可（クロスドメインの場合は必要）
       headers: {
@@ -83,11 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // 「Discordでログイン」ボタン押下時、Workersの/loginへリダイレクト
   document.getElementById("login-btn").addEventListener("click", () => {
-    window.location.href = "https://<YOUR_WORKER_SUBDOMAIN>.workers.dev/login";
+    window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/login";
   });
   
   // 「ログアウト」ボタン押下時、Workersの/logoutへリダイレクト
   document.getElementById("logout-btn").addEventListener("click", () => {
-    window.location.href = "https://<YOUR_WORKER_SUBDOMAIN>.workers.dev/logout";
+    window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/logout";
   });
 });

@@ -17,23 +17,25 @@
   <aside id="tag-list"></aside>
 
   <!-- 右：本文 -->
-  <main>
-    <section id="login-section">
-      <p id="status"></p>
-      <button id="login-btn">Discordでログイン</button>
-    </section>
+  <<main>
+  <!-- ログイン前 -->
+  <section id="login-section">
+    <p id="login-status">ログイン状態を確認中...</p>
+    <button id="login-btn">Discordでログイン</button>
+  </section>
 
-    <section id="welcome-section" style="display:none;">
-      <!-- index.html -->
-      <p id="status"></p>
-      <button id="logout-btn">ログアウト</button>
-    </section>
+  <!-- ログイン後 -->
+  <section id="welcome-section" style="display: none;">
+    <p id="welcome-status">ようこそ、<span id="username"></span> さん！</p>
+    <button id="logout-btn">ログアウト</button>
+  </section>
 
-    <section id="content" style="display:none;">
-      <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
-      <div id="archive"></div>
-    </section>
-  </main>
+  <!-- コンテンツ -->
+  <section id="content" style="display: none;">
+    <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
+    <div id="archive"></div>
+  </section>
+</main>
 
 </body>
 </html>

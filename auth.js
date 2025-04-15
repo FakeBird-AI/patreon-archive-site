@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .then(res => res.json())
     .then(data => {
-      if (data.loggedIn) {
+        if (data.loggedIn) {
         // 認証OK: コンテンツ表示、ユーザー名表示
         loginSec.style.display = "none";
         welcomeSec.style.display = "block";
@@ -59,6 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.username) {
           usernameSpan.textContent = data.username;
         }
+        // ✅ archive 機能の初期化
+        initArchive();
       } else {
         // 認証NG: クッキー無効のため削除し、ログイン画面を表示
         document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -90,12 +92,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logout-btn").addEventListener("click", () => {
     window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/logout";
   });
-if (data.loggedIn) {
-  status.textContent = `ようこそ、${data.username} さん！`;
-  archiveDiv.classList.remove("hidden");
-  loginBtn.classList.add("hidden");
-
-  // ✅ archive 機能の初期化
-  initArchive();
-}
 });

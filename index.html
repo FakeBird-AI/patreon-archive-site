@@ -20,16 +20,19 @@
 <body>
 
   <!-- タグ一覧 -->
-  <aside id="tag-list"></aside>
+<aside id="tag-list">
+  <!-- JSで階層ツリーを生成する -->
+</aside>
 
-  <main>
-    <h1>Patreon支援者限定アーカイブサイト</h1>
-    <p id="status">ログイン状態を確認中...</p>
-    <button id="login-btn" class="hidden">Discordでログイン</button>
+<main>
+  <h1>Patreon支援者限定アーカイブサイト</h1>
+  <p id="status">ログイン状態を確認中...</p>
+  <button id="login-btn" class="hidden">Discordでログイン</button>
 
-    <!-- アーカイブリンク表示エリア（認証後に出る） -->
-    <div id="archive" class="hidden"></div>
-  </main>
+  <div id="archive" class="hidden">
+    <!-- JSで作品を描画 -->
+  </div>
+</main>
 
 </body>
 </html>

@@ -6,9 +6,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   let selectedCharacter = null;
 
-  // --- ① カテゴリツリーを構築する ---
-  const tree = {}; // { ゲーム: { スト6: [マリーザ, ルーク] }, Vtuber: {...} }
-
+  // --- ① カテゴリツリーを構築 ---
+  const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
     if (!tree[type]) tree[type] = {};
@@ -18,36 +17,66 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- ② サイドバーに表示 ---
+  // --- ② 折りたたみツリー描画 ---
   for (const type in tree) {
-    const typeDiv = document.createElement("div");
-    typeDiv.innerHTML = `<strong>${type}</strong>`;
-    tagList.appendChild(typeDiv);
+    const typeContainer = document.createElement("div");
+    const typeToggle = document.createElement("div");
+    typeToggle.innerHTML = `▶ ${type}`;
+    typeToggle.style.cursor = "pointer";
+    typeToggle.style.fontWeight = "bold";
+    typeToggle.style.margin = "0.5rem 0";
+    
+    const seriesContainer = document.createElement("div");
+    seriesContainer.style.marginLeft = "1rem";
+    seriesContainer.style.display = "none"; // 初期状態は閉じる
+
+    typeToggle.addEventListener("click", () => {
+      const isOpen = seriesContainer.style.display === "block";
+      seriesContainer.style.display = isOpen ? "none" : "block";
+      typeToggle.innerHTML = `${isOpen ? "▶" : "▼"} ${type}`;
+    });
+
+    typeContainer.appendChild(typeToggle);
+    typeContainer.appendChild(seriesContainer);
+    tagList.appendChild(typeContainer);
 
     for (const series in tree[type]) {
-      const seriesDiv = document.createElement("div");
-      seriesDiv.style.marginLeft = "1rem";
-      seriesDiv.textContent = `📁 ${series}`;
-      tagList.appendChild(seriesDiv);
+      const seriesWrapper = document.createElement("div");
+      seriesWrapper.style.marginBottom = "0.3rem";
+
+      const seriesToggle = document.createElement("div");
+      seriesToggle.innerHTML = `📁 ${series}`;
+      seriesToggle.style.cursor = "pointer";
+      seriesToggle.style.marginLeft = "0.5rem";
+
+      const charContainer = document.createElement("div");
+      charContainer.style.marginLeft = "1.5rem";
+      charContainer.style.display = "none";
+
+      seriesToggle.addEventListener("click", () => {
+        const isOpen = charContainer.style.display === "block";
+        charContainer.style.display = isOpen ? "none" : "block";
+      });
 
       tree[type][series].forEach(character => {
         const charBtn = document.createElement("div");
         charBtn.textContent = `👤 ${character}`;
-        charBtn.style.marginLeft = "2rem";
         charBtn.style.cursor = "pointer";
-        charBtn.style.color = "blue";
-
+        charBtn.style.margin = "0.2rem 0";
         charBtn.addEventListener("click", () => {
           selectedCharacter = character;
           render();
         });
-
-        tagList.appendChild(charBtn);
+        charContainer.appendChild(charBtn);
       });
+
+      seriesWrapper.appendChild(seriesToggle);
+      seriesWrapper.appendChild(charContainer);
+      seriesContainer.appendChild(seriesWrapper);
     }
   }
 
-  // --- ③ 作品一覧を表示 ---
+  // --- ③ アーカイブ表示 ---
   function render() {
     archiveDiv.innerHTML = "";
     const filtered = selectedCharacter

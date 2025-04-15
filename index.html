@@ -3,36 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>支援者限定アーカイブ</title>
+  <title>Patreon支援者限定アーカイブ</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="auth.js" defer></script>
+  <script src="archive.js" defer></script>
 </head>
 <body>
-  <header>
-    <h1>支援者限定アーカイブ</h1>
-  </header>
+
+  <!-- 左側：カテゴリツリー -->
+  <aside id="tag-list">
+    <!-- JSで生成 -->
+  </aside>
+
+  <!-- ハンバーガーボタン（スマホ用） -->
+  <div id="hamburger" class="hidden">☰ カテゴリ</div>
+
+  <!-- 右側：本文表示 -->
   <main>
-    <!-- メッセージ表示（エラー/ログアウト通知など） -->
-    <div id="message" class="message"></div>
-    <!-- 認証済みユーザー向け：歓迎メッセージとログアウトボタン -->
-    <div id="welcome-section" style="display: none;">
-      <p>ようこそ、<span id="username"></span> さん！</p>
-      <button id="logout-btn">ログアウト</button>
-    </div>
-    <!-- 未認証ユーザー向け：ログイン誘導 -->
-    <div id="login-section" style="display: none;">
-      <p>アーカイブを見るにはDiscordでログインしてください。</p>
-      <button id="login-btn">Discordでログイン</button>
-    </div>
-    <!-- 支援者限定アーカイブコンテンツ -->
-    <div id="content" style="display: none;">
-      <h2>アーカイブ一覧</h2>
-      <ul>
-        <li>2025-01-01: 特典コンテンツ1</li>
-        <li>2025-02-01: 特典コンテンツ2</li>
-        <li>2025-03-01: 特典コンテンツ3</li>
-      </ul>
+    <h1>Patreon支援者限定アーカイブサイト</h1>
+    <p id="status">ログイン状態を確認中...</p>
+
+    <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
+
+    <button id="login-btn" class="hidden">Discordでログイン</button>
+
+    <div id="archive" class="hidden">
+      ✅ 認証成功！以下からアーカイブにアクセスできます：<br />
+      <!-- JSでリンクを生成 -->
     </div>
   </main>
-  <script src="auth.js"></script>
+
 </body>
 </html>

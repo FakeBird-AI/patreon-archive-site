@@ -1,10 +1,25 @@
+let selectedCharacter = null;
+
 async function initArchive() {
+  console.log("✅ initArchive() 開始");
+
   const archiveDiv = document.getElementById("archive");
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
 
-  const data = await fetch("data.json").then(res => res.json());
-  let selectedCharacter = null;
+  const data = await fetch("data.json")
+    .then(res => res.json())
+    .catch(err => {
+      console.error("❌ data.jsonの読み込みに失敗", err);
+      return [];
+    });
+
+  console.log("📦 data.json 読み込み完了:", data);
+
+  if (!Array.isArray(data) || data.length === 0) {
+    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
+    return;
+  }
 
   // --- カテゴリツリー構築 ---
   const tree = {};

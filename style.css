@@ -47,16 +47,23 @@ main {
   display: none;
 }
 
+#welcome-section {
+  background: #eef;
+  padding: 0.5rem;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
 /* --- モバイル対応 --- */
 @media (max-width: 768px) {
-  body {
-    flex-direction: column;
+  #main-container {
+    flex-direction: column; /* 横→縦に切り替え */
   }
 
   aside {
-    display: none;
     width: 100%;
     height: auto;
+    display: none;
     max-height: 300px;
     overflow-y: auto;
     border-bottom: 1px solid #ccc;
@@ -68,8 +75,14 @@ main {
 
   #hamburger {
     display: block;
+    background: #444;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 1.2rem;
+    cursor: pointer;
   }
-
+  
   main {
     padding: 1rem;
   }
@@ -90,11 +103,3 @@ main {
     font-size: 1.5rem;
   }
 }
-
-#welcome-section {
-  background: #eef;
-  padding: 0.5rem;
-  border-radius: 5px;
-  font-weight: bold;
-}
-

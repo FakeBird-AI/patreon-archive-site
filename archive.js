@@ -10,18 +10,16 @@ async function initArchive() {
   const data = await fetch("data.json")
     .then(res => res.json())
     .catch(err => {
-      console.error("❌ data.jsonの読み込みに失敗", err);
+      console.error("❌ data.jsonの読み込み失敗:", err);
       return [];
     });
-
-  console.log("📦 data.json 読み込み完了:", data);
 
   if (!Array.isArray(data) || data.length === 0) {
     archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
     return;
   }
 
-  // --- カテゴリツリー構築 ---
+  // --- カテゴリ構築 ---
   const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
@@ -33,63 +31,61 @@ async function initArchive() {
   });
 
   for (const type in tree) {
-    const typeContainer = document.createElement("div");
+    const typeDiv = document.createElement("div");
     const typeToggle = document.createElement("div");
     typeToggle.textContent = `▶ ${type}`;
-    typeToggle.style.cursor = "pointer";
     typeToggle.style.fontWeight = "bold";
+    typeToggle.style.cursor = "pointer";
     typeToggle.style.margin = "0.5rem 0";
 
-    const seriesContainer = document.createElement("div");
-    seriesContainer.style.marginLeft = "1rem";
-    seriesContainer.style.display = "none";
+    const seriesDiv = document.createElement("div");
+    seriesDiv.style.display = "none";
+    seriesDiv.style.marginLeft = "1rem";
 
     typeToggle.addEventListener("click", () => {
-      const isOpen = seriesContainer.style.display === "block";
-      seriesContainer.style.display = isOpen ? "none" : "block";
-      typeToggle.textContent = `${isOpen ? "▶" : "▼"} ${type}`;
+      const open = seriesDiv.style.display === "block";
+      seriesDiv.style.display = open ? "none" : "block";
+      typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
     });
 
-    typeContainer.appendChild(typeToggle);
-    typeContainer.appendChild(seriesContainer);
-    tagList.appendChild(typeContainer);
+    typeDiv.appendChild(typeToggle);
+    typeDiv.appendChild(seriesDiv);
+    tagList.appendChild(typeDiv);
 
     for (const series in tree[type]) {
-      const seriesWrapper = document.createElement("div");
       const seriesToggle = document.createElement("div");
       seriesToggle.textContent = `▶ ${series}`;
       seriesToggle.style.cursor = "pointer";
       seriesToggle.style.marginLeft = "0.5rem";
 
-      const charContainer = document.createElement("div");
-      charContainer.style.marginLeft = "1.5rem";
-      charContainer.style.display = "none";
+      const charList = document.createElement("div");
+      charList.style.display = "none";
+      charList.style.marginLeft = "1.5rem";
 
       seriesToggle.addEventListener("click", () => {
-        const isOpen = charContainer.style.display === "block";
-        charContainer.style.display = isOpen ? "none" : "block";
-        seriesToggle.textContent = `${isOpen ? "▶" : "▼"} ${series}`;
+        const open = charList.style.display === "block";
+        charList.style.display = open ? "none" : "block";
+        seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
       });
 
       tree[type][series].forEach(character => {
-        const charBtn = document.createElement("div");
-        charBtn.textContent = `👤 ${character}`;
-        charBtn.style.cursor = "pointer";
-        charBtn.style.margin = "0.2rem 0";
-        charBtn.addEventListener("click", () => {
+        const btn = document.createElement("div");
+        btn.textContent = `👤 ${character}`;
+        btn.style.cursor = "pointer";
+        btn.style.margin = "0.2rem 0";
+        btn.addEventListener("click", () => {
           selectedCharacter = character;
           render();
         });
-        charContainer.appendChild(charBtn);
+        charList.appendChild(btn);
       });
 
-      seriesWrapper.appendChild(seriesToggle);
-      seriesWrapper.appendChild(charContainer);
-      seriesContainer.appendChild(seriesWrapper);
+      seriesDiv.appendChild(seriesToggle);
+      seriesDiv.appendChild(charList);
     }
   }
 
-  // --- 検索処理＋描画 ---
+  // --- 検索＆描画 ---
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
@@ -118,14 +114,11 @@ async function initArchive() {
     });
   }
 
-  render(); // 初回表示
+  render();
   searchBox.addEventListener("input", render);
 
-  // --- ハンバーガーメニュー開閉 ---
-  const hamburger = document.getElementById("hamburger");
-  const aside = document.querySelector("aside");
-
-  hamburger.addEventListener("click", () => {
-    aside.classList.toggle("open");
+  // ハンバーガー開閉
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.querySelector("aside").classList.toggle("open");
   });
 }

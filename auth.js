@@ -90,4 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logout-btn").addEventListener("click", () => {
     window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/logout";
   });
+if (data.loggedIn) {
+  status.textContent = `ようこそ、${data.username} さん！`;
+  archiveDiv.classList.remove("hidden");
+  loginBtn.classList.add("hidden");
+
+  // ✅ archive 機能の初期化
+  initArchive();
+}
 });

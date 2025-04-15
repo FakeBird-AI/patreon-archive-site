@@ -6,7 +6,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   let selectedCharacter = null;
 
-  // --- ① カテゴリツリーを構築 ---
+  // --- カテゴリツリーを構築 ---
   const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
@@ -17,7 +17,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- ② 折りたたみツリー描画 ---
+  // --- 折りたたみ付きツリー描画 ---
   for (const type in tree) {
     const typeContainer = document.createElement("div");
     const typeToggle = document.createElement("div");
@@ -25,10 +25,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     typeToggle.style.cursor = "pointer";
     typeToggle.style.fontWeight = "bold";
     typeToggle.style.margin = "0.5rem 0";
-    
+
     const seriesContainer = document.createElement("div");
     seriesContainer.style.marginLeft = "1rem";
-    seriesContainer.style.display = "none"; // 初期状態は閉じる
+    seriesContainer.style.display = "none";
 
     typeToggle.addEventListener("click", () => {
       const isOpen = seriesContainer.style.display === "block";
@@ -45,7 +45,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       seriesWrapper.style.marginBottom = "0.3rem";
 
       const seriesToggle = document.createElement("div");
-      seriesToggle.innerHTML = `📁 ${series}`;
+      seriesToggle.innerHTML = `▶ ${series}`;
       seriesToggle.style.cursor = "pointer";
       seriesToggle.style.marginLeft = "0.5rem";
 
@@ -56,6 +56,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       seriesToggle.addEventListener("click", () => {
         const isOpen = charContainer.style.display === "block";
         charContainer.style.display = isOpen ? "none" : "block";
+        seriesToggle.innerHTML = `${isOpen ? "▶" : "▼"} ${series}`;
       });
 
       tree[type][series].forEach(character => {
@@ -76,7 +77,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // --- ③ アーカイブ表示 ---
+  // --- アーカイブ表示 ---
   function render() {
     archiveDiv.innerHTML = "";
     const filtered = selectedCharacter

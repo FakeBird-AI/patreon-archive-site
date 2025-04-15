@@ -99,31 +99,36 @@ window.addEventListener("DOMContentLoaded", async () => {
     render();
   });
 
-  function render() {
-    archiveDiv.innerHTML = "";
+function render() {
+  archiveDiv.innerHTML = "";
 
-    const keyword = document.getElementById("search-box").value.trim().toLowerCase();
+  const keyword = document.getElementById("search-box").value.trim().toLowerCase();
 
-    const filtered = data.filter(item => {
-      const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
-      const matchKeyword = keyword === "" || (
-        item.title.toLowerCase().includes(keyword) ||
-        item.category.character.toLowerCase().includes(keyword) ||
-        item.tags.some(tag => tag.toLowerCase().includes(keyword))
-      );
-      return matchChar && matchKeyword;
-    });
+  const filtered = data.filter(item => {
+    const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
 
-    if (filtered.length === 0) {
-      archiveDiv.innerHTML = `<p>該当する作品が見つかりませんでした。</p>`;
-      return;
-    }
+    // キーワードが title / character / tags に一致するかどうか
+    const matchKeyword =
+      keyword === "" ||
+      item.title.toLowerCase().includes(keyword) ||
+      item.category.character.toLowerCase().includes(keyword) ||
+      item.category.series.toLowerCase().includes(keyword) || // ←シリーズ名も検索対象に含めた
+      item.tags.some(tag => tag.toLowerCase().includes(keyword));
 
-    filtered.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `<strong>${item.title}</strong><br><a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
-      archiveDiv.appendChild(div);
-    });
+    return matchChar && matchKeyword;
+  });
+
+  if (filtered.length === 0) {
+    archiveDiv.innerHTML = `<p>該当する作品が見つかりませんでした。</p>`;
+    return;
   }
+
+  filtered.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<strong>${item.title}</strong><br><a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+    archiveDiv.appendChild(div);
+  });
+}
+
 });

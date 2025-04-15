@@ -1,91 +1,71 @@
-/* 非表示クラス（重要！！） */
-.hidden {
-  display: none !important;
+/* 全体のスタイル設定 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background: #f9f9f9;
 }
-
-/* ハンバーガーボタン */
-#hamburger {
-  display: none;
-  background: #444;
-  color: white;
-  padding: 0.8rem;
+/* ヘッダー */
+header {
+  background: #5865F2;  /* Discordのブランドカラー */
+  color: #fff;
   text-align: center;
-  font-size: 1.2rem;
+  padding: 1em;
+}
+/* メインコンテンツ領域 */
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1em;
+}
+/* メッセージ表示部分 */
+.message {
+  margin: 1em 0;
+  font-weight: bold;
+}
+.message.error {
+  color: #d44;
+}
+.message.success {
+  color: #4a4;
+}
+/* セクションごとの余白 */
+#welcome-section, #login-section {
+  margin: 1.5em 0;
+}
+#welcome-section p, #login-section p {
+  font-size: 1.1em;
+}
+/* ボタンスタイル */
+button {
+  font-size: 1em;
+  padding: 0.6em 1.2em;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
-
-/* 既存のPC表示 */
-body {
-  font-family: sans-serif;
-  display: flex;
-  margin: 0;
-  background: #f4f4f4;
-  flex-direction: row;
+#login-btn {
+  background-color: #5865F2;
+  color: #fff;
 }
-
-aside {
-  width: 220px;
-  background: #eee;
-  padding: 1rem;
-  height: 100vh;
-  overflow-y: auto;
+#login-btn:hover {
+  opacity: 0.9;
 }
-
-main {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  position: relative;
+#logout-btn {
+  background-color: #ccc;
+  color: #000;
 }
-
-/* スマホ用レスポンシブ */
-@media (max-width: 768px) {
-  #hamburger {
-    display: block;
-  }
-
-  body {
-    flex-direction: column;
-  }
-
-  aside {
-    width: 100%;
-    height: auto;
-    display: none; /* 初期は隠す */
-    max-height: 300px;
-    overflow-y: auto;
-    border-bottom: 1px solid #ccc;
-  }
-
-  aside.open {
-    display: block;
-  }
-
-  main {
-    padding: 1rem;
-  }
-
-  input#search-box {
-    font-size: 1rem;
-    width: 100%;
-    padding: 0.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: white;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .item {
-    font-size: 1rem;
-  }
-
-  #login-btn {
-    width: 100%;
-    font-size: 1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-  }
+#logout-btn:hover {
+  opacity: 0.8;
+}
+/* アーカイブコンテンツのスタイル */
+#content h2 {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
+#content ul {
+  padding-left: 1.2em;
+}
+#content li {
+  margin-bottom: 0.5em;
 }

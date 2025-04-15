@@ -18,18 +18,12 @@
     <button id="login-btn">Discordでログイン</button>
   </section>
 
-  <!-- ログイン済みユーザー用の表示 -->
-  <section id="welcome-section" class="hidden">
-    ようこそ、<span id="username"></span> さん！
-    <button id="logout-btn">ログアウト</button>
-  </section>
-
   <!-- ログイン済みユーザー向けのアーカイブ本体 -->
   <div id="content" class="hidden">
 
     <!-- 左側：カテゴリツリー -->
     <aside id="tag-list">
-      <!-- JSで生成される -->
+      <!-- JSで生成 -->
     </aside>
 
     <!-- ハンバーガーメニュー（スマホ用） -->
@@ -37,12 +31,18 @@
 
     <!-- 本文エリア -->
     <main>
+      <!-- ログイン後のユーザー情報表示（main内に移動） -->
+      <section id="welcome-section" class="hidden" style="margin-bottom: 1rem;">
+        ようこそ、<span id="username"></span> さん！
+        <button id="logout-btn">ログアウト</button>
+      </section>
+
       <h1>Patreon支援者限定アーカイブサイト</h1>
       <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
 
       <div id="archive" class="hidden">
         ✅ 認証成功！以下からアーカイブにアクセスできます：<br />
-        <!-- JSでアーカイブ一覧を描画 -->
+        <!-- JSでアーカイブが描画される -->
       </div>
     </main>
   </div>

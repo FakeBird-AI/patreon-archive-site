@@ -1,21 +1,29 @@
 body {
   font-family: sans-serif;
-  display: flex;
   margin: 0;
-  background: #f4f4f4;
+  display: flex;
   flex-direction: row;
+  background: #f4f4f4;
 }
 
+/* 左メニュー */
 aside {
   width: 220px;
-  flex-shrink: 0;
+  background: #eee;
+  padding: 1rem;
+  height: 100vh;
+  overflow-y: auto;
 }
 
+/* 右本文 */
 main {
   flex: 1;
   padding: 2rem;
+  overflow-y: auto;
+  position: relative;
 }
 
+/* ハンバーガー */
 #hamburger {
   display: none;
   background: #444;
@@ -26,44 +34,30 @@ main {
   cursor: pointer;
 }
 
+/* 検索 */
 #search-box {
   width: 100%;
   padding: 0.5rem;
+  font-size: 1rem;
   margin: 1rem 0;
-  font-size: 1rem;
+  box-sizing: border-box;
 }
 
-#login-btn {
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
+/* 各アイテム */
 .item {
   margin-bottom: 1rem;
 }
 
-.hidden {
-  display: none;
-}
-
-#welcome-section {
-  background: #eef;
-  padding: 0.5rem;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
 /* --- モバイル対応 --- */
 @media (max-width: 768px) {
-  #main-container {
-    flex-direction: column; /* 横→縦に切り替え */
+  body {
+    flex-direction: column;
   }
 
   aside {
+    display: none;
     width: 100%;
     height: auto;
-    display: none;
     max-height: 300px;
     overflow-y: auto;
     border-bottom: 1px solid #ccc;
@@ -75,14 +69,8 @@ main {
 
   #hamburger {
     display: block;
-    background: #444;
-    color: white;
-    padding: 0.8rem;
-    text-align: center;
-    font-size: 1.2rem;
-    cursor: pointer;
   }
-  
+
   main {
     padding: 1rem;
   }
@@ -92,14 +80,5 @@ main {
     top: 0;
     z-index: 10;
     background: white;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .item {
-    font-size: 1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
   }
 }

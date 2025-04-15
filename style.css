@@ -54,3 +54,7 @@ main {
   cursor: pointer;
 }
 
+#tag-list div {
+  user-select: none;
+  transition: all 0.2s;
+}

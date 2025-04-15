@@ -1,52 +1,46 @@
 // auth.js - 認証状態のチェックとUI制御
 
 document.addEventListener("DOMContentLoaded", () => {
-  const messageDiv   = document.getElementById("message");
-  const welcomeSec   = document.getElementById("welcome-section");
-  const loginSec     = document.getElementById("login-section");
-  const usernameSpan = document.getElementById("username");
-  const status       = document.getElementById("status");
-  const contentSec   = document.getElementById("content");
+  const loginSec      = document.getElementById("login-section");
+  const welcomeSec    = document.getElementById("welcome-section");
+  const contentSec    = document.getElementById("content");
 
-  // 👋 初期化：表示をリセット
-  status.textContent = "";
-  loginSec.style.display   = "none";
-  welcomeSec.style.display = "none";
-  contentSec.style.display = "none";
+  const loginStatus   = document.getElementById("login-status");
+  const welcomeStatus = document.getElementById("welcome-status");
+  const usernameSpan  = document.getElementById("username");
 
-  // ✅ 認証トークンがURLにある場合 → Cookieに保存
+  const loginBtn      = document.getElementById("login-btn");
+  const logoutBtn     = document.getElementById("logout-btn");
+
+  // URLに認証後のトークン（#token=...）がある場合はCookieに保存
   if (window.location.hash.startsWith("#token=")) {
     const token = window.location.hash.substring(7);
     document.cookie = `session=${token}; Path=/; Secure; SameSite=Lax; Max-Age=86400`;
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 
-  // 🔄 パラメータ確認（ログアウト/認証エラー）
+  // ログアウト指示がある場合（?logout=true）
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get("logout") === "true") {
     document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    messageDiv.textContent = "ログアウトしました。";
-    messageDiv.classList.add("success");
+    loginStatus.textContent = "ログアウトしました。";
     history.replaceState(null, "", window.location.pathname);
   }
 
+  // 未認可エラーがある場合（?error=unauthorized）
   if (urlParams.get("error") === "unauthorized") {
-    messageDiv.textContent = "必要なロールがないためコンテンツにアクセスできません。";
-    messageDiv.classList.add("error");
+    loginStatus.textContent = "必要なロールがないためコンテンツにアクセスできません。";
     history.replaceState(null, "", window.location.pathname);
   }
 
-  // 🍪 クッキーからセッショントークン取得
-  const getCookie = (name) => {
+  // クッキーからセッションを取得
+  function getCookie(name) {
     const match = document.cookie.match(new RegExp(`(^|\\s)${name}=([^;]+)`));
     return match ? match[2] : null;
-  };
+  }
   const sessionToken = getCookie("session");
 
   if (sessionToken) {
-    // ⏳ ローディング表示
-    status.textContent = "ログイン確認中...";
-
     fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
       method: "GET",
       credentials: "include",
@@ -54,39 +48,44 @@ document.addEventListener("DOMContentLoaded", () => {
         "Authorization": `Bearer ${sessionToken}`
       }
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.loggedIn) {
-        loginSec.style.display = "none";
-        welcomeSec.style.display = "block";
-        contentSec.style.display = "block";
-        status.textContent = `ようこそ、${data.username} さん！`;
-
-        // ✅ アーカイブ初期化
-        initArchive();
-      } else {
-        document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        status.textContent = "ログインが必要です。";
+      .then(res => res.json())
+      .then(data => {
+        if (data.loggedIn) {
+          loginSec.style.display = "none";
+          welcomeSec.style.display = "block";
+          contentSec.style.display = "block";
+          usernameSpan.textContent = data.username || "ユーザー";
+          // アーカイブ表示機能を起動
+          if (typeof initArchive === "function") {
+            initArchive();
+          }
+        } else {
+          // 無効トークンなら削除
+          document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          loginSec.style.display = "block";
+          welcomeSec.style.display = "none";
+          contentSec.style.display = "none";
+        }
+      })
+      .catch(err => {
+        console.error("Verify request failed:", err);
         loginSec.style.display = "block";
-      }
-    })
-    .catch(err => {
-      console.error("Verify request failed:", err);
-      status.textContent = "認証エラーが発生しました。";
-      loginSec.style.display = "block";
-    });
+        welcomeSec.style.display = "none";
+        contentSec.style.display = "none";
+      });
   } else {
-    // 未ログイン状態
-    status.textContent = "ログインが必要です。";
     loginSec.style.display = "block";
+    welcomeSec.style.display = "none";
+    contentSec.style.display = "none";
   }
 
-  // 🎫 ログイン・ログアウトボタン
-  document.getElementById("login-btn").addEventListener("click", () => {
+  // Discordログイン
+  loginBtn.addEventListener("click", () => {
     window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/login";
   });
 
-  document.getElementById("logout-btn").addEventListener("click", () => {
+  // ログアウト
+  logoutBtn.addEventListener("click", () => {
     window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/logout";
   });
 });

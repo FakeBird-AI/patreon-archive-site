@@ -14,6 +14,9 @@ async function initArchive() {
       return [];
     });
 
+  // 🔽 新しい順にソート（dateが存在する前提）
+  data.sort((a, b) => b.date.localeCompare(a.date));
+
   if (!Array.isArray(data) || data.length === 0) {
     archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
     return;
@@ -106,12 +109,23 @@ async function initArchive() {
       return;
     }
 
-    filtered.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `<strong>${item.title}</strong><br><a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
-      archiveDiv.appendChild(div);
-    });
+  filtered.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+        <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
+        <div>
+          <strong>${item.title}</strong><br>
+          <small>${item.date}</small><br>
+          <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+        </div>
+      </div>
+    `;
+    archiveDiv.appendChild(div);
+  });
+
   }
 
   render();

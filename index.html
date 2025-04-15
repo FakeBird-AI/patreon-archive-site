@@ -10,44 +10,29 @@
 </head>
 <body>
 
-  <!-- メッセージ（ログイン・エラーなど） -->
-  <div id="message"></div>
+  <!-- ハンバーガー（モバイル） -->
+  <div id="hamburger">☰ カテゴリ</div>
 
-  <!-- 未ログイン表示 -->
-  <section id="login-section" class="hidden">
-    <button id="login-btn">Discordでログイン</button>
-  </section>
+  <!-- 左：カテゴリ -->
+  <aside id="tag-list"></aside>
 
-  <!-- ログイン済み -->
-  <div id="content" class="hidden">
+  <!-- 右：本文 -->
+  <main>
+    <section id="login-section">
+      <p id="status">ログイン状態を確認中...</p>
+      <button id="login-btn">Discordでログイン</button>
+    </section>
 
-    <!-- スマホ用カテゴリ開閉ボタン -->
-    <div id="hamburger" class="hidden">☰ カテゴリ</div>
+    <section id="welcome-section" style="display:none;">
+      ようこそ、<span id="username"></span> さん！
+      <button id="logout-btn">ログアウト</button>
+    </section>
 
-    <!-- メインレイアウト（左右分割） -->
-    <div id="main-container" style="display: flex; flex-direction: row;">
-
-      <!-- 左側：カテゴリ -->
-      <aside id="tag-list">
-        <!-- JSでカテゴリ生成 -->
-      </aside>
-
-      <!-- 右側：本文 -->
-      <main>
-        <section id="welcome-section" class="hidden" style="margin-bottom: 1rem;">
-          ようこそ、<span id="username"></span> さん！
-          <button id="logout-btn">ログアウト</button>
-        </section>
-
-        <h1>Patreon支援者限定アーカイブサイト</h1>
-        <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
-
-        <div id="archive" class="hidden">
-          ✅ 認証成功！以下からアーカイブにアクセスできます：<br />
-        </div>
-      </main>
-    </div>
-  </div>
+    <section id="content" style="display:none;">
+      <input type="text" id="search-box" placeholder="タイトル・キャラ・タグで検索" />
+      <div id="archive"></div>
+    </section>
+  </main>
 
 </body>
 </html>

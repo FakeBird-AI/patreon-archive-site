@@ -1,3 +1,8 @@
+/* 非表示クラス（重要！！） */
+.hidden {
+  display: none !important;
+}
+
 /* ハンバーガーボタン */
 #hamburger {
   display: none;

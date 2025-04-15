@@ -1,4 +1,4 @@
-window.addEventListener("DOMContentLoaded", async () => {
+async function initArchive() {
   const archiveDiv = document.getElementById("archive");
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
@@ -113,4 +113,4 @@ window.addEventListener("DOMContentLoaded", async () => {
   hamburger.addEventListener("click", () => {
     aside.classList.toggle("open");
   });
-});
+}

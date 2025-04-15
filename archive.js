@@ -2,31 +2,56 @@ window.addEventListener("DOMContentLoaded", async () => {
   const archiveDiv = document.getElementById("archive");
   const tagList = document.getElementById("tag-list");
 
-  let data = await fetch("data.json").then(res => res.json());
-  let selectedTag = null;
+  const data = await fetch("data.json").then(res => res.json());
 
-  // タグ一覧を集める（重複なし）
-  const allTags = [...new Set(data.flatMap(item => item.tags))];
+  let selectedCharacter = null;
 
-  // タグボタン生成
-  allTags.forEach(tag => {
-    const btn = document.createElement("div");
-    btn.textContent = tag;
-    btn.className = "tag";
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tag").forEach(t => t.classList.remove("active"));
-      btn.classList.add("active");
-      selectedTag = tag;
-      render();
-    });
-    tagList.appendChild(btn);
+  // --- ① カテゴリツリーを構築する ---
+  const tree = {}; // { ゲーム: { スト6: [マリーザ, ルーク] }, Vtuber: {...} }
+
+  data.forEach(item => {
+    const { type, series, character } = item.category;
+    if (!tree[type]) tree[type] = {};
+    if (!tree[type][series]) tree[type][series] = [];
+    if (!tree[type][series].includes(character)) {
+      tree[type][series].push(character);
+    }
   });
 
-  // 表示関数
+  // --- ② サイドバーに表示 ---
+  for (const type in tree) {
+    const typeDiv = document.createElement("div");
+    typeDiv.innerHTML = `<strong>${type}</strong>`;
+    tagList.appendChild(typeDiv);
+
+    for (const series in tree[type]) {
+      const seriesDiv = document.createElement("div");
+      seriesDiv.style.marginLeft = "1rem";
+      seriesDiv.textContent = `📁 ${series}`;
+      tagList.appendChild(seriesDiv);
+
+      tree[type][series].forEach(character => {
+        const charBtn = document.createElement("div");
+        charBtn.textContent = `👤 ${character}`;
+        charBtn.style.marginLeft = "2rem";
+        charBtn.style.cursor = "pointer";
+        charBtn.style.color = "blue";
+
+        charBtn.addEventListener("click", () => {
+          selectedCharacter = character;
+          render();
+        });
+
+        tagList.appendChild(charBtn);
+      });
+    }
+  }
+
+  // --- ③ 作品一覧を表示 ---
   function render() {
     archiveDiv.innerHTML = "";
-    const filtered = selectedTag
-      ? data.filter(item => item.tags.includes(selectedTag))
+    const filtered = selectedCharacter
+      ? data.filter(item => item.category.character === selectedCharacter)
       : data;
 
     filtered.forEach(item => {
@@ -37,5 +62,5 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  render(); // 初期表示（全件）
+  render();
 });

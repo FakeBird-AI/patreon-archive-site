@@ -91,6 +91,39 @@ window.addEventListener("DOMContentLoaded", async () => {
       archiveDiv.appendChild(div);
     });
   }
-
+  
   render();
+
+  // --- 検索欄イベント ---
+  document.getElementById("search-box").addEventListener("input", () => {
+    render();
+  });
+
+  function render() {
+    archiveDiv.innerHTML = "";
+
+    const keyword = document.getElementById("search-box").value.trim().toLowerCase();
+
+    const filtered = data.filter(item => {
+      const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
+      const matchKeyword = keyword === "" || (
+        item.title.toLowerCase().includes(keyword) ||
+        item.category.character.toLowerCase().includes(keyword) ||
+        item.tags.some(tag => tag.toLowerCase().includes(keyword))
+      );
+      return matchChar && matchKeyword;
+    });
+
+    if (filtered.length === 0) {
+      archiveDiv.innerHTML = `<p>該当する作品が見つかりませんでした。</p>`;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `<strong>${item.title}</strong><br><a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+      archiveDiv.appendChild(div);
+    });
+  }
 });

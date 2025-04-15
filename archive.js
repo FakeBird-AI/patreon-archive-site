@@ -130,5 +130,10 @@ function render() {
     archiveDiv.appendChild(div);
   });
 }
+  // --- ハンバーガーメニューの開閉制御 ---
+const hamburger = document.getElementById("hamburger");
+const aside = document.querySelector("aside");
 
+hamburger.addEventListener("click", () => {
+  aside.classList.toggle("open");
 });

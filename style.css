@@ -1,71 +1,97 @@
-/* 全体のスタイル設定 */
 body {
-  margin: 0;
-  padding: 0;
   font-family: sans-serif;
-  background: #f9f9f9;
+  display: flex;
+  margin: 0;
+  background: #f4f4f4;
+  flex-direction: row;
 }
-/* ヘッダー */
-header {
-  background: #5865F2;  /* Discordのブランドカラー */
-  color: #fff;
-  text-align: center;
-  padding: 1em;
+
+aside {
+  width: 220px;
+  background: #eee;
+  padding: 1rem;
+  height: 100vh;
+  overflow-y: auto;
 }
-/* メインコンテンツ領域 */
+
 main {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1em;
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  position: relative;
 }
-/* メッセージ表示部分 */
-.message {
-  margin: 1em 0;
-  font-weight: bold;
-}
-.message.error {
-  color: #d44;
-}
-.message.success {
-  color: #4a4;
-}
-/* セクションごとの余白 */
-#welcome-section, #login-section {
-  margin: 1.5em 0;
-}
-#welcome-section p, #login-section p {
-  font-size: 1.1em;
-}
-/* ボタンスタイル */
-button {
-  font-size: 1em;
-  padding: 0.6em 1.2em;
-  border: none;
-  border-radius: 4px;
+
+#hamburger {
+  display: none;
+  background: #444;
+  color: white;
+  padding: 0.8rem;
+  text-align: center;
+  font-size: 1.2rem;
   cursor: pointer;
 }
+
+#search-box {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
 #login-btn {
-  background-color: #5865F2;
-  color: #fff;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
 }
-#login-btn:hover {
-  opacity: 0.9;
+
+.item {
+  margin-bottom: 1rem;
 }
-#logout-btn {
-  background-color: #ccc;
-  color: #000;
+
+.hidden {
+  display: none;
 }
-#logout-btn:hover {
-  opacity: 0.8;
-}
-/* アーカイブコンテンツのスタイル */
-#content h2 {
-  margin-top: 1em;
-  font-size: 1.2em;
-}
-#content ul {
-  padding-left: 1.2em;
-}
-#content li {
-  margin-bottom: 0.5em;
+
+/* --- モバイル対応 --- */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  aside {
+    display: none;
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    overflow-y: auto;
+    border-bottom: 1px solid #ccc;
+  }
+
+  aside.open {
+    display: block;
+  }
+
+  #hamburger {
+    display: block;
+  }
+
+  main {
+    padding: 1rem;
+  }
+
+  #search-box {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .item {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
 }

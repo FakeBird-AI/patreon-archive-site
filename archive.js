@@ -1,29 +1,28 @@
 let selectedCharacter = null;
 
 async function initArchive() {
+  console.log("✅ initArchive() 開始");
+
   const archiveDiv = document.getElementById("archive");
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
 
-  const data = await fetch("data.json").then(res => res.json()).catch(err => {
-    console.error("❌ data.json 読み込み失敗:", err);
-    return [];
-  });
+  const data = await fetch("data.json")
+    .then(res => res.json())
+    .catch(err => {
+      console.error("❌ data.jsonの読み込み失敗:", err);
+      return [];
+    });
 
-  const verify = await fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
-    credentials: "include"
-  }).then(res => res.json());
-
-  const roles = verify.roles || [];
-  const cutoff = verify.cutoffDate || "00000000";
-
-  const isStandard = roles.includes("1350114379391045692");
-  const isSpecial  = roles.includes("1350114736242557010");
-  const isPremium  = roles.includes("1350114869780680734");
-  const isOwner    = roles.includes("1350114997040316458");
-
+  // 🔽 新しい順にソート（dateが存在する前提）
   data.sort((a, b) => b.date.localeCompare(a.date));
 
+  if (!Array.isArray(data) || data.length === 0) {
+    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
+    return;
+  }
+
+  // --- カテゴリ構築 ---
   const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
@@ -38,8 +37,8 @@ async function initArchive() {
     const typeDiv = document.createElement("div");
     const typeToggle = document.createElement("div");
     typeToggle.textContent = `▶ ${type}`;
-    typeToggle.style.cursor = "pointer";
     typeToggle.style.fontWeight = "bold";
+    typeToggle.style.cursor = "pointer";
     typeToggle.style.margin = "0.5rem 0";
 
     const seriesDiv = document.createElement("div");
@@ -89,6 +88,7 @@ async function initArchive() {
     }
   }
 
+  // --- 検索＆描画 ---
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
@@ -109,37 +109,29 @@ async function initArchive() {
       return;
     }
 
-    filtered.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
+  filtered.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
 
-      let archiveSection = "";
-
-      if (isStandard) {
-        archiveSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
-      } else if (isSpecial && item.date < cutoff) {
-        archiveSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-      } else if ((isSpecial && item.date >= cutoff) || isPremium || isOwner) {
-        archiveSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
-      }
-
-      div.innerHTML = `
-        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <img src="${item.thumbnail}" alt="thumb" style="width: 120px; object-fit: cover; border: 1px solid #ccc;" />
-          <div>
-            <strong>${item.title}</strong><br>
-            <small>${item.date}</small><br>
-            ${archiveSection}
-          </div>
+    div.innerHTML = `
+      <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+        <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
+        <div>
+          <strong>${item.title}</strong><br>
+          <small>${item.date}</small><br>
+          <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
         </div>
-      `;
-      archiveDiv.appendChild(div);
-    });
+      </div>
+    `;
+    archiveDiv.appendChild(div);
+  });
+
   }
 
   render();
   searchBox.addEventListener("input", render);
 
+  // ハンバーガー開閉
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });

@@ -1,11 +1,23 @@
 let selectedCharacter = null;
+let archiveStartDate = null; // ← ここで1ヶ月前日付をセットする
 
-async function initArchive() {
+async function initArchive(joinedDateStr) {
   console.log("✅ initArchive() 開始");
 
   const archiveDiv = document.getElementById("archive");
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
+
+  // 🔽 ロールID 1350114379391045692 向けの制限がある場合、日付を算出
+  if (joinedDateStr) {
+    const joinedDate = new Date(joinedDateStr);
+    const oneMonthAgo = new Date(joinedDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const y = oneMonthAgo.getFullYear();
+    const m = String(oneMonthAgo.getMonth() + 1).padStart(2, '0');
+    const d = String(oneMonthAgo.getDate()).padStart(2, '0');
+    archiveStartDate = `${y}${m}${d}`;
+    console.log("📅 閲覧可能な最古日付:", archiveStartDate);
+  }
 
   const data = await fetch("data.json")
     .then(res => res.json())
@@ -14,7 +26,7 @@ async function initArchive() {
       return [];
     });
 
-  // 🔽 新しい順にソート（dateが存在する前提）
+  // 🔽 新しい順に並び替え
   data.sort((a, b) => b.date.localeCompare(a.date));
 
   if (!Array.isArray(data) || data.length === 0) {
@@ -25,6 +37,7 @@ async function initArchive() {
   // --- カテゴリ構築 ---
   const tree = {};
   data.forEach(item => {
+    if (archiveStartDate && item.date < archiveStartDate) return; // ❗制限対象
     const { type, series, character } = item.category;
     if (!tree[type]) tree[type] = {};
     if (!tree[type][series]) tree[type][series] = [];
@@ -88,12 +101,13 @@ async function initArchive() {
     }
   }
 
-  // --- 検索＆描画 ---
+  // --- 表示処理 ---
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
 
     const filtered = data.filter(item => {
+      if (archiveStartDate && item.date < archiveStartDate) return false;
       const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
       const matchKeyword =
         keyword === "" ||
@@ -109,29 +123,26 @@ async function initArchive() {
       return;
     }
 
-  filtered.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
-        <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
-        <div>
-          <strong>${item.title}</strong><br>
-          <small>${item.date}</small><br>
-          <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+    filtered.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+          <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${item.date}</small><br>
+            <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+          </div>
         </div>
-      </div>
-    `;
-    archiveDiv.appendChild(div);
-  });
-
+      `;
+      archiveDiv.appendChild(div);
+    });
   }
 
   render();
   searchBox.addEventListener("input", render);
 
-  // ハンバーガー開閉
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });

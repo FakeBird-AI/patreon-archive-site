@@ -1,6 +1,6 @@
 let selectedCharacter = null;
 let cutoffDate = null;
-let userRole = "unknown"; // standard, special, premium, owner
+let userRole = null;
 
 async function initArchive() {
   console.log("✅ initArchive() 開始");
@@ -9,23 +9,25 @@ async function initArchive() {
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
 
-  // --- ユーザーのパーミッション取得 ---
-  const sessionToken = (document.cookie.match(/session=([^;]+)/) || [])[1];
-  const permission = await fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
+  const sessionToken = getCookie("session");
+  if (!sessionToken) {
+    archiveDiv.innerHTML = "<p>セッションが見つかりませんでした。</p>";
+    return;
+  }
+
+  // 🔐 ロールとカットオフ日付取得
+  const permissionRes = await fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
     headers: {
-      Authorization: `Bearer ${sessionToken}`,
+      Authorization: `Bearer ${sessionToken}`
     },
     credentials: "include"
-  }).then(res => res.json());
+  });
 
-  cutoffDate = permission.cutoffDate || null;
+  const permissionData = await permissionRes.json();
+  cutoffDate = permissionData.cutoffDate || null;
+  userRole = permissionData.roles ? permissionData.roles[0] : null;
 
-  // ロール決定（cutoffDate が存在すれば special 扱い、それ以外は premium/owner）
-  userRole = "premium";
-  if (cutoffDate) userRole = "special";
-
-  console.log("🛂 認証:", permission.username, "cutoff:", cutoffDate, "role:", userRole);
-
+  // 📦 data.json 読み込み
   const data = await fetch("data.json")
     .then(res => res.json())
     .catch(err => {
@@ -36,7 +38,12 @@ async function initArchive() {
   // 🔽 新しい順にソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
-  // --- カテゴリツリー構築 ---
+  if (!Array.isArray(data) || data.length === 0) {
+    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
+    return;
+  }
+
+  // --- カテゴリ構築 ---
   const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
@@ -102,6 +109,7 @@ async function initArchive() {
     }
   }
 
+  // --- 検索＆描画 ---
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
@@ -126,13 +134,19 @@ async function initArchive() {
       const div = document.createElement("div");
       div.className = "item";
 
-      const showZip =
-        userRole === "premium" || userRole === "owner" ||
-        (userRole === "special" && item.date >= cutoffDate);
-
-      const zipContent = showZip
-        ? `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`
-        : `<span style="color: gray;">${userRole === "special" ? "Premiumにアップグレードすると閲覧可能です" : "SpecialまたはPremiumにアップグレードすると閲覧可能です"}</span>`;
+      // ZIPリンクの可視性判定
+      let zipDisplay = "";
+      if (userRole === "1350114379391045692") {
+        zipDisplay = `<span style="color: gray;">🔒 specialまたはpremiumにアップグレードすると閲覧可能です</span>`;
+      } else if (
+        userRole === "1350114736242557010" &&
+        cutoffDate &&
+        item.date < cutoffDate
+      ) {
+        zipDisplay = `<span style="color: gray;">🔒 premiumにアップグレードすると閲覧可能です</span>`;
+      } else {
+        zipDisplay = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+      }
 
       div.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
@@ -140,7 +154,7 @@ async function initArchive() {
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            ${zipContent}
+            ${zipDisplay}
           </div>
         </div>
       `;
@@ -151,7 +165,13 @@ async function initArchive() {
   render();
   searchBox.addEventListener("input", render);
 
+  // ハンバーガー開閉
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp(`(^|\\s)${name}=([^;]+)`));
+  return match ? match[2] : null;
 }

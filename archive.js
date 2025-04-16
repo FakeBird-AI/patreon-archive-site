@@ -168,7 +168,6 @@ async function initArchive(joinedDateStr) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  document.addEventListener("DOMContentLoaded", async () => {
   // 🚫 無限ループ防止：すでに error=unauthorized で来てる場合は何もしない
   if (location.search.includes("error=unauthorized")) {
     console.warn("⛔ 認証エラー状態のためスクリプトを中断");

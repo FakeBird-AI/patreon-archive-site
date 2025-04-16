@@ -5,6 +5,7 @@ async function initArchive() {
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
 
+  // データと認証情報の取得
   const data = await fetch("data.json").then(res => res.json()).catch(err => {
     console.error("❌ data.json 読み込み失敗:", err);
     return [];
@@ -18,12 +19,14 @@ async function initArchive() {
   const cutoff = verify.cutoffDate || null;
 
   const isStandard = roles.includes("1350114379391045692");
-  const isSpecial = roles.includes("1350114736242557010");
-  const isPremium = roles.includes("1350114869780680734");
-  const isOwner = roles.includes("1350114997040316458");
+  const isSpecial  = roles.includes("1350114736242557010");
+  const isPremium  = roles.includes("1350114869780680734");
+  const isOwner    = roles.includes("1350114997040316458");
 
+  // 日付で降順ソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
+  // カテゴリツリー構築
   const tree = {};
   data.forEach(item => {
     const { type, series, character } = item.category;
@@ -89,6 +92,7 @@ async function initArchive() {
     }
   }
 
+  // 描画関数
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
@@ -113,17 +117,17 @@ async function initArchive() {
       const div = document.createElement("div");
       div.className = "item";
 
+      // ZIPリンクの表示制御
       let zipSection = "";
+      const dateStr = item.date || "";
+      const isOlderThanCutoff = cutoff && dateStr < cutoff;
 
       if (isStandard) {
-        // standard: 常に非表示（誘導文のみ）
         zipSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
-      } else if (isSpecial && cutoff && item.date < cutoff) {
-        // special: 1ヶ月以上前のアーカイブは制限
+      } else if (isSpecial && isOlderThanCutoff) {
         zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-      } else if ((isSpecial || isPremium || isOwner) && item.zip) {
-        // 特別／プレミアム／オーナーは表示（条件付き）
-        zipSection = `<a href="${item.zip}" target="_blank">▶ ZIPダウンロード</a>`;
+      } else if ((isSpecial || isPremium || isOwner) && item.url) {
+        zipSection = `<a href="${item.url}" target="_blank">▶ ZIPダウンロード</a>`;
       }
 
       div.innerHTML = `
@@ -132,7 +136,6 @@ async function initArchive() {
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            <a href="${item.url}" target="_blank">▶ アーカイブを見る</a><br>
             ${zipSection}
           </div>
         </div>
@@ -144,6 +147,7 @@ async function initArchive() {
   render();
   searchBox.addEventListener("input", render);
 
+  // ハンバーガーメニュー開閉
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });

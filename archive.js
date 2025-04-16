@@ -1,5 +1,5 @@
 let selectedCharacter = null;
-let archiveStartDate = null; // 🔒 1ヶ月制限用の開始日
+let archiveStartDate = null;
 
 function getToken() {
   const hash = location.hash;
@@ -21,9 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const token = getToken();
+
+  // 🚫 トークンなし → ここで終了（リダイレクトしない！）
   if (!token) {
-    console.warn("❌ トークンなし、unauthorized にリダイレクト");
-    location.href = "/?error=unauthorized";
+    console.log("👤 未ログイン状態。UIは表示しない");
     return;
   }
 
@@ -37,11 +38,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (permission.limitAfter) {
-    archiveStartDate = permission.limitAfter.replace(/-/g, ""); // YYYY-MM-DD → YYYYMMDD
+    archiveStartDate = permission.limitAfter.replace(/-/g, "");
   }
 
   initArchive();
 });
+
 
 async function initArchive() {
   console.log("✅ initArchive() 開始");

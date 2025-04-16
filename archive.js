@@ -113,18 +113,14 @@ async function initArchive() {
       const div = document.createElement("div");
       div.className = "item";
 
-      let zipSection = "";
+      let archiveSection = "";
 
       if (isStandard) {
-        zipSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
-      } else if (isSpecial) {
-        if (item.date >= cutoff) {
-          zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
-        } else {
-          zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-        }
-      } else if (isPremium || isOwner) {
-        zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+        archiveSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
+      } else if (isSpecial && item.date < cutoff) {
+        archiveSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
+      } else if ((isSpecial && item.date >= cutoff) || isPremium || isOwner) {
+        archiveSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
       }
 
       div.innerHTML = `
@@ -133,7 +129,7 @@ async function initArchive() {
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            ${zipSection}
+            ${archiveSection}
           </div>
         </div>
       `;

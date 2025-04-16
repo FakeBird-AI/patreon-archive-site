@@ -1,191 +1,114 @@
-let selectedCharacter = null;
+// admin.js
+document.addEventListener("DOMContentLoaded", () => {
+  // まず /verify でログイン＆ロール情報を取得
+  fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
+    method: "GET",
+    credentials: "include"
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.loggedIn || !Array.isArray(data.roles)) {
+        document.body.innerHTML = "<p>ログインが必要です。</p>";
+        return;
+      }
+      // Owner ロールを保持しているかチェック
+      if (!data.roles.includes("1350114997040316458")) {
+        document.body.innerHTML = "<p>このページはOwnerロール保持者のみ利用できます。</p>";
+        return;
+      }
+      // 管理画面の初期化を実行
+      initAdmin(data.roles);
+    })
+    .catch(err => {
+      console.error(err);
+      document.body.innerHTML = "<p>認証チェックに失敗しました。</p>";
+    });
+});
 
-// YYYYMMDD形式の文字列をDateオブジェクトに変換
-function parseDate(dateStr) {
-  const y = +dateStr.slice(0,4),
-        m = +dateStr.slice(4,6) - 1,
-        d = +dateStr.slice(6,8);
-  return new Date(y,m,d);
-}
+function initAdmin(roles) {
+  // ここから先は Owner のみが実行
+  const form       = document.getElementById("archiveForm");
+  const clearBtn   = document.getElementById("clearForm");
+  const msgEl      = document.getElementById("formMessage");
+  const entriesDiv = document.getElementById("entries");
 
-// ZIPリンク／メッセージを返す
-function getZipLinkContent(item) {
-  const PRIORITY = {
-    "1350114997040316458": 4, // Owner
-    "1350114869780680734": 3, // Premium
-    "1350114736242557010": 2, // Special
-    "1350114379391045692": 1  // Standard
-  };
-  let max = 0, role = null;
-  (window.userRoles||[]).forEach(r => {
-    if ((PRIORITY[r]||0) > max) {
-      max = PRIORITY[r];
-      role = r;
-    }
-  });
-
-  const fileDate = parseDate(item.date);
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  const recent = fileDate >= oneMonthAgo;
-
-  switch (role) {
-    case "1350114997040316458": // Owner
-    case "1350114869780680734": // Premium
-      return `<a href="${item.url}" target="_blank">ZIPリンク</a>`;
-
-    case "1350114736242557010": // Special
-      return recent
-        ? `<a href="${item.url}" target="_blank">ZIPリンク</a>`
-        : "1ヶ月より前のアーカイブです。Premiumにアップグレードしてください。";
-
-    case "1350114379391045692": // Standard
-      return recent
-        ? "PremiumもしくはSpecialにアップグレードすると閲覧可能です。"
-        : "1ヶ月より前のアーカイブです。Premiumにアップグレードしてください。";
-
-    default:
-      return "このコンテンツにアクセスできません。";
-  }
-}
-
-// Owner用の管理ページリンク追加
-function appendAdminLink() {
-  if ((window.userRoles||[]).includes("1350114997040316458")) {
-    const linkDiv = document.createElement("div");
-    linkDiv.style.marginTop = "2rem";
-    linkDiv.style.textAlign = "center";
-    linkDiv.innerHTML = '<a href="admin.html" target="_blank">管理ページへ</a>';
-    document.getElementById("tag-list").appendChild(linkDiv);
-  }
-}
-
-async function initArchive() {
-  console.log("✅ initArchive() 開始");
-  const archiveDiv = document.getElementById("archive");
-  const tagList    = document.getElementById("tag-list");
-  const searchBox  = document.getElementById("search-box");
-
-  // data.json 読み込み
-  const data = await fetch("data.json")
+  let entries = [];
+  // data.json を取得
+  fetch("data.json")
     .then(r => r.json())
+    .then(data => {
+      entries = data;
+      renderEntries();
+    })
     .catch(e => {
       console.error(e);
-      return [];
+      entriesDiv.innerHTML = "<p>既存エントリーの読み込みに失敗しました。</p>";
     });
 
-  if (!data.length) {
-    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
-    return;
-  }
-
-  // 日付でソート
-  data.sort((a,b) => b.date.localeCompare(a.date));
-
-  // ── タグツリー構築 ──
-  const tree = {};
-  data.forEach(item => {
-    const { type, series, character } = item.category;
-    tree[type]            = tree[type]            || {};
-    tree[type][series]    = tree[type][series]    || [];
-    if (!tree[type][series].includes(character)) {
-      tree[type][series].push(character);
-    }
-  });
-
-  Object.entries(tree).forEach(([type, seriesMap]) => {
-    const typeDiv    = document.createElement("div");
-    const typeToggle = document.createElement("div");
-    typeToggle.textContent = `▶ ${type}`;
-    Object.assign(typeToggle.style, { fontWeight:"bold", cursor:"pointer", margin:"0.5rem 0" });
-    const seriesDiv = document.createElement("div");
-    seriesDiv.style.display = "none";
-    seriesDiv.style.marginLeft = "1rem";
-
-    typeToggle.addEventListener("click", () => {
-      const open = seriesDiv.style.display==="block";
-      seriesDiv.style.display = open?"none":"block";
-      typeToggle.textContent   = `${open?"▶":"▼"} ${type}`;
-    });
-
-    typeDiv.append(typeToggle, seriesDiv);
-    tagList.appendChild(typeDiv);
-
-    Object.entries(seriesMap).forEach(([series, chars]) => {
-      const seriesToggle = document.createElement("div");
-      seriesToggle.textContent = `▶ ${series}`;
-      Object.assign(seriesToggle.style, { cursor:"pointer", marginLeft:"0.5rem" });
-      const charList = document.createElement("div");
-      charList.style.display    = "none";
-      charList.style.marginLeft = "1.5rem";
-
-      seriesToggle.addEventListener("click", () => {
-        const open = charList.style.display==="block";
-        charList.style.display = open?"none":"block";
-        seriesToggle.textContent = `${open?"▶":"▼"} ${series}`;
-      });
-
-      chars.forEach(character => {
-        const btn = document.createElement("div");
-        btn.textContent = `👤 ${character}`;
-        Object.assign(btn.style, { cursor:"pointer", margin:"0.2rem 0" });
-        btn.addEventListener("click", () => {
-          selectedCharacter = character;
-          render();
-        });
-        charList.appendChild(btn);
-      });
-
-      seriesDiv.append(seriesToggle, charList);
-    });
-  });
-
-  // ── 検索＆描画 ──
-  function render() {
-    archiveDiv.innerHTML = "";
-    const kw = searchBox.value.trim().toLowerCase();
-
-    const filtered = data.filter(item => {
-      const okChar = !selectedCharacter || item.category.character === selectedCharacter;
-      const okKw = !kw
-        || item.title.toLowerCase().includes(kw)
-        || item.category.series.toLowerCase().includes(kw)
-        || item.category.character.toLowerCase().includes(kw)
-        || item.tags.some(t => t.toLowerCase().includes(kw));
-      return okChar && okKw;
-    });
-
-    if (!filtered.length) {
-      archiveDiv.innerHTML = "<p>該当する作品が見つかりませんでした。</p>";
+  function renderEntries() {
+    entriesDiv.innerHTML = "";
+    if (!entries.length) {
+      entriesDiv.innerHTML = "<p>エントリーはありません。</p>";
       return;
     }
-
-    filtered.forEach(item => {
+    entries.forEach((e,i) => {
       const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start">
-          <img src="${item.thumbnail}" style="width:120px;object-fit:cover;border:1px solid #ccc" />
-          <div>
-            <strong>${item.title}</strong><br>
-            <small>${item.date}</small><br>
-            ${getZipLinkContent(item)}
-          </div>
-        </div>
-      `;
-      archiveDiv.appendChild(div);
+      div.style = "border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem";
+      div.innerHTML = `<strong>${e.title}</strong> (${e.date})
+        <button data-index="${i}" class="editEntry">編集</button>`;
+      entriesDiv.appendChild(div);
+    });
+    document.querySelectorAll(".editEntry").forEach(btn => {
+      btn.addEventListener("click", ev => {
+        const idx = +ev.target.dataset.index;
+        fillForm(entries[idx], idx);
+      });
     });
   }
 
-  render();
-  searchBox.addEventListener("input", render);
+  function fillForm(e, idx) {
+    form.title.value     = e.title;
+    form.date.value      = e.date;
+    form.thumbnail.value = e.thumbnail;
+    form.type.value      = e.category.type;
+    form.series.value    = e.category.series;
+    form.character.value = e.category.character;
+    form.tags.value      = e.tags.join(", ");
+    form.url.value       = e.url;
+    form.entryId.value   = idx;
+  }
 
-  // ハンバーガー開閉
-  document.getElementById("hamburger")
-    .addEventListener("click", () => document.querySelector("aside").classList.toggle("open"));
+  clearBtn.addEventListener("click", () => {
+    form.reset();
+    form.entryId.value = "";
+    msgEl.textContent  = "";
+  });
 
-  // 管理ページリンクを追加
-  appendAdminLink();
+  form.addEventListener("submit", ev => {
+    ev.preventDefault();
+    const newEntry = {
+      title:     form.title.value.trim(),
+      date:      form.date.value.trim(),
+      thumbnail: form.thumbnail.value.trim(),
+      category: {
+        type:      form.type.value.trim(),
+        series:    form.series.value.trim(),
+        character: form.character.value.trim()
+      },
+      tags: form.tags.value.split(",").map(t=>t.trim()).filter(t=>t),
+      url: form.url.value.trim()
+    };
+    const id = form.entryId.value;
+    if (id==="") {
+      entries.push(newEntry);
+      msgEl.textContent = "新規エントリーを登録しました。";
+    } else {
+      entries[id] = newEntry;
+      msgEl.textContent = "エントリーを更新しました。";
+    }
+    renderEntries();
+    form.reset();
+    form.entryId.value = "";
+    // ※実運用時はここで POST/PUT をサーバーAPIに投げて保存してください
+  });
 }
-
-// auth.js 側でログイン成功後に initArchive() を呼んでいる前提なので、ここでは呼び出し不要

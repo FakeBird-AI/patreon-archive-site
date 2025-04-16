@@ -9,7 +9,7 @@ function getToken() {
     const token = match[1];
     console.log("🌟 初回トークン取得:", token);
     localStorage.setItem("token", token);
-    
+
     // ハッシュを消してリロードされないようにする（重要！）
     history.replaceState(null, "", location.pathname + location.search);
     return token;
@@ -165,7 +165,7 @@ async function initArchive(joinedDateStr) {
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });
-}
+} // ← これが足りなかった！
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 🚫 無限ループ防止：すでに error=unauthorized で来てる場合は何もしない

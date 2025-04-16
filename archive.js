@@ -15,12 +15,12 @@ async function initArchive() {
   }).then(res => res.json());
 
   const roles = verify.roles || [];
-  const cutoff = verify.cutoffDate || null;
+  const cutoff = verify.cutoffDate || "00000000";
 
   const isStandard = roles.includes("1350114379391045692");
-  const isSpecial = roles.includes("1350114736242557010");
-  const isPremium = roles.includes("1350114869780680734");
-  const isOwner = roles.includes("1350114997040316458");
+  const isSpecial  = roles.includes("1350114736242557010");
+  const isPremium  = roles.includes("1350114869780680734");
+  const isOwner    = roles.includes("1350114997040316458");
 
   data.sort((a, b) => b.date.localeCompare(a.date));
 
@@ -115,12 +115,15 @@ async function initArchive() {
 
       let zipSection = "";
 
-      // 権限によるZIPリンク表示制御（item.url がZIPリンク）
       if (isStandard) {
         zipSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
-      } else if (isSpecial && cutoff && item.date < cutoff) {
-        zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-      } else if ((isSpecial && cutoff && item.date >= cutoff) || isPremium || isOwner) {
+      } else if (isSpecial) {
+        if (item.date >= cutoff) {
+          zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+        } else {
+          zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
+        }
+      } else if (isPremium || isOwner) {
         zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
       }
 

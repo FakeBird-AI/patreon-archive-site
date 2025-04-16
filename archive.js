@@ -116,10 +116,13 @@ async function initArchive() {
       let zipSection = "";
 
       if (isStandard) {
+        // standard: 常に非表示（誘導文のみ）
         zipSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
       } else if (isSpecial && cutoff && item.date < cutoff) {
+        // special: 1ヶ月以上前のアーカイブは制限
         zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-      } else if (item.zip) {
+      } else if ((isSpecial || isPremium || isOwner) && item.zip) {
+        // 特別／プレミアム／オーナーは表示（条件付き）
         zipSection = `<a href="${item.zip}" target="_blank">▶ ZIPダウンロード</a>`;
       }
 

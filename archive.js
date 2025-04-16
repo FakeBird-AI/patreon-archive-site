@@ -1,4 +1,40 @@
 let selectedCharacter = null;
+let archiveStartDate = null; // 🔒 1ヶ月制限用の開始日
+
+function getToken() {
+  const hash = location.hash;
+  const match = hash.match(/token=([^&]+)/);
+  if (match) {
+    const token = match[1];
+    localStorage.setItem("token", token);
+    history.replaceState(null, "", location.pathname + location.search);
+    return token;
+  }
+  return localStorage.getItem("token");
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = getToken();
+  if (!token) {
+    location.href = "/?error=unauthorized";
+    return;
+  }
+
+  const permission = await fetch("https://patreon-archive-site.fakebird279.workers.dev/get-permission", {
+    headers: { Authorization: `Bearer ${token}` }
+  }).then(res => res.json()).catch(() => null);
+
+  if (!permission || permission.status !== "ok") {
+    location.href = "/?error=unauthorized";
+    return;
+  }
+
+  if (permission.limitAfter) {
+    archiveStartDate = permission.limitAfter.replace(/-/g, ""); // YYYY-MM-DD → YYYYMMDD
+  }
+
+  initArchive();
+});
 
 async function initArchive() {
   console.log("✅ initArchive() 開始");
@@ -14,7 +50,6 @@ async function initArchive() {
       return [];
     });
 
-  // 🔽 新しい順にソート（dateが存在する前提）
   data.sort((a, b) => b.date.localeCompare(a.date));
 
   if (!Array.isArray(data) || data.length === 0) {
@@ -22,9 +57,9 @@ async function initArchive() {
     return;
   }
 
-  // --- カテゴリ構築 ---
   const tree = {};
   data.forEach(item => {
+    if (archiveStartDate && item.date < archiveStartDate) return;
     const { type, series, character } = item.category;
     if (!tree[type]) tree[type] = {};
     if (!tree[type][series]) tree[type][series] = [];
@@ -88,12 +123,12 @@ async function initArchive() {
     }
   }
 
-  // --- 検索＆描画 ---
   function render() {
     archiveDiv.innerHTML = "";
     const keyword = searchBox.value.trim().toLowerCase();
 
     const filtered = data.filter(item => {
+      if (archiveStartDate && item.date < archiveStartDate) return false;
       const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
       const matchKeyword =
         keyword === "" ||
@@ -109,29 +144,26 @@ async function initArchive() {
       return;
     }
 
-  filtered.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
-        <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
-        <div>
-          <strong>${item.title}</strong><br>
-          <small>${item.date}</small><br>
-          <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+    filtered.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+          <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${item.date}</small><br>
+            <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+          </div>
         </div>
-      </div>
-    `;
-    archiveDiv.appendChild(div);
-  });
-
+      `;
+      archiveDiv.appendChild(div);
+    });
   }
 
   render();
   searchBox.addEventListener("input", render);
 
-  // ハンバーガー開閉
   document.getElementById("hamburger").addEventListener("click", () => {
     document.querySelector("aside").classList.toggle("open");
   });

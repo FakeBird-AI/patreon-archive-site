@@ -14,8 +14,15 @@ function getToken() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // 🚫 無限ループ防止
+  if (location.search.includes("error=unauthorized")) {
+    console.warn("⛔ 認証エラー状態のためスクリプトを中断");
+    return;
+  }
+
   const token = getToken();
   if (!token) {
+    console.warn("❌ トークンなし、unauthorized にリダイレクト");
     location.href = "/?error=unauthorized";
     return;
   }

@@ -1,203 +1,85 @@
-let selectedCharacter = null;
-let archiveStartDate = null; // ← ここで1ヶ月前日付をセットする
-
-function getToken() {
-  const hash = location.hash;
-  const match = hash.match(/token=([^&]+)/);
-
-  if (match) {
-    const token = match[1];
-    console.log("🌟 初回トークン取得:", token);
-    localStorage.setItem("token", token);
-
-    // ハッシュを消してリロードされないようにする（重要！）
-    history.replaceState(null, "", location.pathname + location.search);
-    return token;
-  }
-
-  const saved = localStorage.getItem("token");
-  console.log("💾 ローカル保存トークン:", saved);
-  return saved;
-}
-
-async function initArchive(joinedDateStr) {
-  console.log("✅ initArchive() 開始");
-
-  const archiveDiv = document.getElementById("archive");
-  const tagList = document.getElementById("tag-list");
-  const searchBox = document.getElementById("search-box");
-
-  // 🔽 ロールID 1350114379391045692 向けの制限がある場合、日付を算出
-  if (joinedDateStr) {
-    const joinedDate = new Date(joinedDateStr);
-    const oneMonthAgo = new Date(joinedDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const y = oneMonthAgo.getFullYear();
-    const m = String(oneMonthAgo.getMonth() + 1).padStart(2, '0');
-    const d = String(oneMonthAgo.getDate()).padStart(2, '0');
-    archiveStartDate = `${y}${m}${d}`;
-    console.log("📅 閲覧可能な最古日付:", archiveStartDate);
-  }
-
-  const data = await fetch("data.json")
-    .then(res => res.json())
-    .catch(err => {
-      console.error("❌ data.jsonの読み込み失敗:", err);
-      return [];
-    });
-
-  // 🔽 新しい順に並び替え
-  data.sort((a, b) => b.date.localeCompare(a.date));
-
-  if (!Array.isArray(data) || data.length === 0) {
-    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
-    return;
-  }
-
-  // --- カテゴリ構築 ---
-  const tree = {};
-  data.forEach(item => {
-    if (archiveStartDate && item.date < archiveStartDate) return; // ❗制限対象
-    const { type, series, character } = item.category;
-    if (!tree[type]) tree[type] = {};
-    if (!tree[type][series]) tree[type][series] = [];
-    if (!tree[type][series].includes(character)) {
-      tree[type][series].push(character);
+  else if (path === "/callback") {
+    // Discordからのコールバック: 認可コードとstateを受け取る
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+    if (!code || !state) {
+      return new Response("Invalid OAuth callback request", { status: 400 });
     }
-  });
-
-  for (const type in tree) {
-    const typeDiv = document.createElement("div");
-    const typeToggle = document.createElement("div");
-    typeToggle.textContent = `▶ ${type}`;
-    typeToggle.style.fontWeight = "bold";
-    typeToggle.style.cursor = "pointer";
-    typeToggle.style.margin = "0.5rem 0";
-
-    const seriesDiv = document.createElement("div");
-    seriesDiv.style.display = "none";
-    seriesDiv.style.marginLeft = "1rem";
-
-    typeToggle.addEventListener("click", () => {
-      const open = seriesDiv.style.display === "block";
-      seriesDiv.style.display = open ? "none" : "block";
-      typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
-    });
-
-    typeDiv.appendChild(typeToggle);
-    typeDiv.appendChild(seriesDiv);
-    tagList.appendChild(typeDiv);
-
-    for (const series in tree[type]) {
-      const seriesToggle = document.createElement("div");
-      seriesToggle.textContent = `▶ ${series}`;
-      seriesToggle.style.cursor = "pointer";
-      seriesToggle.style.marginLeft = "0.5rem";
-
-      const charList = document.createElement("div");
-      charList.style.display = "none";
-      charList.style.marginLeft = "1.5rem";
-
-      seriesToggle.addEventListener("click", () => {
-        const open = charList.style.display === "block";
-        charList.style.display = open ? "none" : "block";
-        seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
-      });
-
-      tree[type][series].forEach(character => {
-        const btn = document.createElement("div");
-        btn.textContent = `👤 ${character}`;
-        btn.style.cursor = "pointer";
-        btn.style.margin = "0.2rem 0";
-        btn.addEventListener("click", () => {
-          selectedCharacter = character;
-          render();
-        });
-        charList.appendChild(btn);
-      });
-
-      seriesDiv.appendChild(seriesToggle);
-      seriesDiv.appendChild(charList);
+    // state検証（CSRF対策）
+    const cookieHeader = request.headers.get("Cookie") || "";
+    const stateCookieMatch = cookieHeader.match(/oauth_state=([^;]+)/);
+    if (!stateCookieMatch) {
+      return new Response("State cookie not found or expired. Please try login again.", { status: 400 });
     }
-  }
-
-  // --- 表示処理 ---
-  function render() {
-    archiveDiv.innerHTML = "";
-    const keyword = searchBox.value.trim().toLowerCase();
-
-    const filtered = data.filter(item => {
-      if (archiveStartDate && item.date < archiveStartDate) return false;
-      const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
-      const matchKeyword =
-        keyword === "" ||
-        item.title.toLowerCase().includes(keyword) ||
-        item.category.character.toLowerCase().includes(keyword) ||
-        item.category.series.toLowerCase().includes(keyword) ||
-        item.tags.some(tag => tag.toLowerCase().includes(keyword));
-      return matchChar && matchKeyword;
+    const savedState = stateCookieMatch[1];
+    if (savedState !== state) {
+      return new Response("Invalid state parameter", { status: 400 });
+    }
+    // 認可コードをDiscordのトークンエンドポイントに交換
+    const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id:     CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        grant_type:    "authorization_code",
+        code:          code,
+        redirect_uri:  REDIRECT_URI
+      })
     });
+    if (!tokenResponse.ok) {
+      return new Response("Failed to obtain access token from Discord", { status: 500 });
+    }
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+    // Discordユーザー情報を取得（ユーザーIDや名前を得るため）
+    const userRes = await fetch("https://discord.com/api/v10/users/@me", {
+      headers: { "Authorization": `Bearer ${accessToken}` }
+    });
+    if (!userRes.ok) {
+      return new Response("Failed to fetch Discord user info", { status: 500 });
+    }
+    const user = await userRes.json();  // ユーザーオブジェクト（id, username, discriminator等を含む）
+    // 指定サーバ内のユーザーロール情報を取得（Botトークンを使用）
+    const memberRes = await fetch(`https://discord.com/api/v10/guilds/${GUILD_ID}/members/${user.id}`, {
+      headers: { "Authorization": `Bot ${BOT_TOKEN}` }
+    });
+    if (!memberRes.ok) {
+      // サーバに未参加か取得失敗の場合、認可拒否
+      return new Response(null, { status: 302, headers: { "Location": `${SITE_URL}/?error=unauthorized` } });
+    }
+    const member = await memberRes.json();
+    console.log("joined_at:", member.joined_at);
+    const userRoles = member.roles || [];
 
-    if (filtered.length === 0) {
-      archiveDiv.innerHTML = "<p>該当する作品が見つかりませんでした。</p>";
-      return;
+    // ★ 修正：「1350114379391045692」のみ過去1ヶ月分のアーカイブ制限を追加
+    const limitedRoleId = "1350114379391045692";
+    const hasLimitedRole = userRoles.includes(limitedRoleId);
+    const hasOtherAllowedRole = userRoles.some(roleId => 
+      ALLOWED_ROLE_IDS.includes(roleId) && roleId !== limitedRoleId
+    );
+    
+    // joined_atはサーバー参加日時となるので、ロール付与日時の代用とします
+    const joinedAt = new Date(member.joined_at);
+    const now = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(now.getMonth() - 1);
+    
+    let hasAccess = false;
+    if (hasOtherAllowedRole) {
+      // 他の許可されたロールがあれば、期間にかかわらずアクセス可能
+      hasAccess = true;
+    } else if (hasLimitedRole && joinedAt >= oneMonthAgo) {
+      // 限定ロールの場合、サーバ参加が過去1ヶ月以内ならアクセス許可
+      hasAccess = true;
+    }
+    
+    if (!hasAccess) {
+      return new Response(null, { status: 302, headers: { "Location": `${SITE_URL}/?error=unauthorized` } });
     }
 
-    filtered.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
-          <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
-          <div>
-            <strong>${item.title}</strong><br>
-            <small>${item.date}</small><br>
-            <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
-          </div>
-        </div>
-      `;
-      archiveDiv.appendChild(div);
-    });
+    // 認証・ロール確認OK: セッショントークンを生成（JWT形式）
+    const sessionToken = await createSessionToken(user);
+    // Cloudflare Pagesサイトへリダイレクト（#トークンをフラグメントに付加）
+    return new Response(null, { status: 302, headers: { "Location": `${SITE_URL}/#token=${sessionToken}` } });
   }
-
-  render();
-  searchBox.addEventListener("input", render);
-
-  document.getElementById("hamburger").addEventListener("click", () => {
-    document.querySelector("aside").classList.toggle("open");
-  });
-} // ← これが足りなかった！
-
-document.addEventListener("DOMContentLoaded", async () => {
-  // 🚫 無限ループ防止：すでに error=unauthorized で来てる場合は何もしない
-  if (location.search.includes("error=unauthorized")) {
-    console.warn("⛔ 認証エラー状態のためスクリプトを中断");
-    return;
-  }
-  const token = getToken();
-
-  if (!token) {
-    console.warn("❌ トークンなし、unauthorized にリダイレクト");
-    location.href = "/?error=unauthorized";
-    return;
-  }
-
-  console.log("✅ JWT 取得済み、/get-permission に送信:", token);
-
-  const permission = await fetch("https://your-worker-domain/get-permission", {
-    headers: { Authorization: `Bearer ${token}` }
-  }).then(res => res.json());
-
-  console.log("🔁 /get-permission 結果:", permission);
-
-  if (permission.status !== "ok") {
-    console.warn("❌ /get-permission 失敗、unauthorized にリダイレクト");
-    location.href = "/?error=unauthorized";
-    return;
-  }
-
-  const joinedAt = permission.limitAfter
-    ? new Date(new Date(permission.limitAfter).getTime() - 30 * 24 * 60 * 60 * 1000)
-    : null;
-
-  initArchive(joinedAt ? joinedAt.toISOString().slice(0, 10) : null);
-});

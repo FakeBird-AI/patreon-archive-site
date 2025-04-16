@@ -1,6 +1,17 @@
 let selectedCharacter = null;
 let archiveStartDate = null; // ← ここで1ヶ月前日付をセットする
 
+function getToken() {
+  const hash = location.hash;
+  const match = hash.match(/token=([^&]+)/);
+  if (match) {
+    const token = match[1];
+    localStorage.setItem("token", token); // 保存しておく
+    return token;
+  }
+  return localStorage.getItem("token");
+}
+
 async function initArchive(joinedDateStr) {
   console.log("✅ initArchive() 開始");
 
@@ -147,3 +158,26 @@ async function initArchive(joinedDateStr) {
     document.querySelector("aside").classList.toggle("open");
   });
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = getToken();
+  if (!token) {
+    location.href = "/?error=unauthorized";
+    return;
+  }
+
+  const permission = await fetch("https://your-worker-domain/get-permission", {
+    headers: { Authorization: `Bearer ${token}` }
+  }).then(res => res.json());
+
+  if (permission.status !== "ok") {
+    location.href = "/?error=unauthorized";
+    return;
+  }
+
+  const joinedAt = permission.limitAfter
+    ? new Date(new Date(permission.limitAfter).getTime() - 30 * 24 * 60 * 60 * 1000)
+    : null;
+
+  initArchive(joinedAt ? joinedAt.toISOString().slice(0, 10) : null);
+});

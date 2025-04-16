@@ -160,6 +160,11 @@ async function initArchive(joinedDateStr) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  if (location.search.includes("error=unauthorized")) {
+    console.warn("⛔ 認証エラーのため処理を中止");
+    return;
+  }
+
   const token = getToken();
   if (!token) {
     location.href = "/?error=unauthorized";

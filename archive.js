@@ -4,11 +4,14 @@ let archiveStartDate = null; // ← ここで1ヶ月前日付をセットする
 function getToken() {
   const hash = location.hash;
   const match = hash.match(/token=([^&]+)/);
+
   if (match) {
     const token = match[1];
     console.log("🌟 初回トークン取得:", token);
     localStorage.setItem("token", token);
-    location.hash = ""; // フラグメント削除
+    
+    // ハッシュを消してリロードされないようにする（重要！）
+    history.replaceState(null, "", location.pathname + location.search);
     return token;
   }
 

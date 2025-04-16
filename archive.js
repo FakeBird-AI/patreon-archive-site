@@ -22,7 +22,7 @@ async function initArchive() {
   const isPremium = roles.includes("1350114869780680734");
   const isOwner = roles.includes("1350114997040316458");
 
-  data.sort((a, b) => b.date.localeCompare(a.date)).reverse();
+  data.sort((a, b) => b.date.localeCompare(a.date));
 
   const tree = {};
   data.forEach(item => {
@@ -113,14 +113,17 @@ async function initArchive() {
       const div = document.createElement("div");
       div.className = "item";
 
-      let archiveSection = "";
-
+      let zipSection = "";
       if (isStandard) {
-        archiveSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
-      } else if (isSpecial && cutoff && item.date < cutoff) {
-        archiveSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
-      } else if (item.url) {
-        archiveSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+        zipSection = `<div style="color: gray;">SpecialまたはPremiumにアップグレードすると閲覧可能です</div>`;
+      } else if (isSpecial) {
+        if (cutoff && item.date < cutoff) {
+          zipSection = `<div style="color: gray;">Premiumにアップグレードすると閲覧可能です</div>`;
+        } else {
+          zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
+        }
+      } else if (isPremium || isOwner) {
+        zipSection = `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`;
       }
 
       div.innerHTML = `
@@ -129,7 +132,7 @@ async function initArchive() {
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            ${archiveSection}
+            ${zipSection}
           </div>
         </div>
       `;

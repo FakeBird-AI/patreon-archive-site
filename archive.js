@@ -53,13 +53,13 @@ function getZipLinkContent(item) {
       if (isWithinOneMonth) {
         return `<a href="${item.url}" target="_blank">ZIPリンク</a>`;
       } else {
-        return "Premiumにアップグレードしてください。";
+        return "1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。";
       }
     case "Standard":
       if (isWithinOneMonth) {
-        return "PremiumもしくはSpecialにアップグレードしてください。";
+        return "PremiumもしくはSpecialにアップグレードすると閲覧可能です。";
       } else {
-        return "Premiumにアップグレードしてください。";
+        return "1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。";
       }
     default:
       return "このコンテンツにアクセスできません。";

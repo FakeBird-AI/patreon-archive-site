@@ -1,49 +1,6 @@
 let selectedCharacter = null;
-let archiveStartDate = null;
-
-function getToken() {
-  const hash = location.hash;
-  const match = hash.match(/token=([^&]+)/);
-  if (match) {
-    const token = match[1];
-    localStorage.setItem("token", token);
-    history.replaceState(null, "", location.pathname + location.search);
-    return token;
-  }
-  return localStorage.getItem("token");
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  // 🚫 無限ループ防止
-  if (location.search.includes("error=unauthorized")) {
-    console.warn("⛔ 認証エラー状態のためスクリプトを中断");
-    return;
-  }
-
-  const token = getToken();
-
-  // 🚫 トークンなし → ここで終了（リダイレクトしない！）
-  if (!token) {
-    console.log("👤 未ログイン状態。UIは表示しない");
-    return;
-  }
-
-  const permission = await fetch("https://patreon-archive-site.fakebird279.workers.dev/get-permission", {
-    headers: { Authorization: `Bearer ${token}` }
-  }).then(res => res.json()).catch(() => null);
-
-  if (!permission || permission.status !== "ok") {
-    location.href = "/?error=unauthorized";
-    return;
-  }
-
-  if (permission.limitAfter) {
-    archiveStartDate = permission.limitAfter.replace(/-/g, "");
-  }
-
-  initArchive();
-});
-
+let cutoffDate = null;
+let userRole = "unknown"; // standard, special, premium, owner
 
 async function initArchive() {
   console.log("✅ initArchive() 開始");
@@ -52,6 +9,23 @@ async function initArchive() {
   const tagList = document.getElementById("tag-list");
   const searchBox = document.getElementById("search-box");
 
+  // --- ユーザーのパーミッション取得 ---
+  const sessionToken = (document.cookie.match(/session=([^;]+)/) || [])[1];
+  const permission = await fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
+    headers: {
+      Authorization: `Bearer ${sessionToken}`,
+    },
+    credentials: "include"
+  }).then(res => res.json());
+
+  cutoffDate = permission.cutoffDate || null;
+
+  // ロール決定（cutoffDate が存在すれば special 扱い、それ以外は premium/owner）
+  userRole = "premium";
+  if (cutoffDate) userRole = "special";
+
+  console.log("🛂 認証:", permission.username, "cutoff:", cutoffDate, "role:", userRole);
+
   const data = await fetch("data.json")
     .then(res => res.json())
     .catch(err => {
@@ -59,16 +33,12 @@ async function initArchive() {
       return [];
     });
 
+  // 🔽 新しい順にソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
-  if (!Array.isArray(data) || data.length === 0) {
-    archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
-    return;
-  }
-
+  // --- カテゴリツリー構築 ---
   const tree = {};
   data.forEach(item => {
-    if (archiveStartDate && item.date < archiveStartDate) return;
     const { type, series, character } = item.category;
     if (!tree[type]) tree[type] = {};
     if (!tree[type][series]) tree[type][series] = [];
@@ -137,7 +107,6 @@ async function initArchive() {
     const keyword = searchBox.value.trim().toLowerCase();
 
     const filtered = data.filter(item => {
-      if (archiveStartDate && item.date < archiveStartDate) return false;
       const matchChar = selectedCharacter ? item.category.character === selectedCharacter : true;
       const matchKeyword =
         keyword === "" ||
@@ -156,13 +125,22 @@ async function initArchive() {
     filtered.forEach(item => {
       const div = document.createElement("div");
       div.className = "item";
+
+      const showZip =
+        userRole === "premium" || userRole === "owner" ||
+        (userRole === "special" && item.date >= cutoffDate);
+
+      const zipContent = showZip
+        ? `<a href="${item.url}" target="_blank">▶ アーカイブを見る</a>`
+        : `<span style="color: gray;">${userRole === "special" ? "Premiumにアップグレードすると閲覧可能です" : "SpecialまたはPremiumにアップグレードすると閲覧可能です"}</span>`;
+
       div.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
           <img src="${item.thumbnail}" alt="サムネイル" style="width: 120px; height: auto; object-fit: cover; border: 1px solid #ccc;" />
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            <a href="${item.url}" target="_blank">▶ アーカイブを見る</a>
+            ${zipContent}
           </div>
         </div>
       `;

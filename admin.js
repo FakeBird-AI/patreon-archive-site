@@ -1,9 +1,23 @@
 // admin.js
 document.addEventListener("DOMContentLoaded", () => {
-  // まず /verify でログイン＆ロール情報を取得
+  // ① Cookie から session トークンを取得
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+  const sessionToken = getCookie("session");
+  if (!sessionToken) {
+    document.body.innerHTML = "<p>ログインが必要です。</p>";
+    return;
+  }
+
+  // ② verify API に Authorization ヘッダ付きで問い合わせ
   fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
     method: "GET",
-    credentials: "include"
+    credentials: "include",
+    headers: {
+      "Authorization": `Bearer ${sessionToken}`
+    }
   })
     .then(res => res.json())
     .then(data => {
@@ -11,37 +25,34 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.innerHTML = "<p>ログインが必要です。</p>";
         return;
       }
-      // Owner ロールを保持しているかチェック
       if (!data.roles.includes("1350114997040316458")) {
         document.body.innerHTML = "<p>このページはOwnerロール保持者のみ利用できます。</p>";
         return;
       }
-      // 管理画面の初期化を実行
-      initAdmin(data.roles);
+      // ③ Owner 確認OK → 管理画面初期化
+      initAdmin();
     })
-    .catch(err => {
-      console.error(err);
+    .catch(() => {
       document.body.innerHTML = "<p>認証チェックに失敗しました。</p>";
     });
 });
 
-function initAdmin(roles) {
-  // ここから先は Owner のみが実行
+// Owner ロール保持者向けの画面ロジック
+function initAdmin() {
   const form       = document.getElementById("archiveForm");
   const clearBtn   = document.getElementById("clearForm");
   const msgEl      = document.getElementById("formMessage");
   const entriesDiv = document.getElementById("entries");
 
   let entries = [];
-  // data.json を取得
+  // data.json を読み込んで一覧表示
   fetch("data.json")
     .then(r => r.json())
     .then(data => {
       entries = data;
       renderEntries();
     })
-    .catch(e => {
-      console.error(e);
+    .catch(() => {
       entriesDiv.innerHTML = "<p>既存エントリーの読み込みに失敗しました。</p>";
     });
 
@@ -51,14 +62,14 @@ function initAdmin(roles) {
       entriesDiv.innerHTML = "<p>エントリーはありません。</p>";
       return;
     }
-    entries.forEach((e,i) => {
+    entries.forEach((e, i) => {
       const div = document.createElement("div");
       div.style = "border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem";
       div.innerHTML = `<strong>${e.title}</strong> (${e.date})
         <button data-index="${i}" class="editEntry">編集</button>`;
       entriesDiv.appendChild(div);
     });
-    document.querySelectorAll(".editEntry").forEach(btn => {
+    entriesDiv.querySelectorAll(".editEntry").forEach(btn => {
       btn.addEventListener("click", ev => {
         const idx = +ev.target.dataset.index;
         fillForm(entries[idx], idx);
@@ -95,11 +106,11 @@ function initAdmin(roles) {
         series:    form.series.value.trim(),
         character: form.character.value.trim()
       },
-      tags: form.tags.value.split(",").map(t=>t.trim()).filter(t=>t),
+      tags: form.tags.value.split(",").map(t => t.trim()).filter(t => t),
       url: form.url.value.trim()
     };
     const id = form.entryId.value;
-    if (id==="") {
+    if (id === "") {
       entries.push(newEntry);
       msgEl.textContent = "新規エントリーを登録しました。";
     } else {
@@ -109,6 +120,6 @@ function initAdmin(roles) {
     renderEntries();
     form.reset();
     form.entryId.value = "";
-    // ※実運用時はここで POST/PUT をサーバーAPIに投げて保存してください
+    // 実運用ではここで POST/PUT をサーバーAPIに投げて保存する
   });
 }

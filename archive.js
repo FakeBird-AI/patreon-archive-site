@@ -6,10 +6,15 @@ function getToken() {
   const match = hash.match(/token=([^&]+)/);
   if (match) {
     const token = match[1];
-    localStorage.setItem("token", token); // 保存しておく
+    console.log("🌟 初回トークン取得:", token);
+    localStorage.setItem("token", token);
+    location.hash = ""; // フラグメント削除
     return token;
   }
-  return localStorage.getItem("token");
+
+  const saved = localStorage.getItem("token");
+  console.log("💾 ローカル保存トークン:", saved);
+  return saved;
 }
 
 async function initArchive(joinedDateStr) {
@@ -160,22 +165,24 @@ async function initArchive(joinedDateStr) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (location.search.includes("error=unauthorized")) {
-    console.warn("⛔ 認証エラーのため処理を中止");
-    return;
-  }
-
   const token = getToken();
+
   if (!token) {
+    console.warn("❌ トークンなし、unauthorized にリダイレクト");
     location.href = "/?error=unauthorized";
     return;
   }
+
+  console.log("✅ JWT 取得済み、/get-permission に送信:", token);
 
   const permission = await fetch("https://your-worker-domain/get-permission", {
     headers: { Authorization: `Bearer ${token}` }
   }).then(res => res.json());
 
+  console.log("🔁 /get-permission 結果:", permission);
+
   if (permission.status !== "ok") {
+    console.warn("❌ /get-permission 失敗、unauthorized にリダイレクト");
     location.href = "/?error=unauthorized";
     return;
   }

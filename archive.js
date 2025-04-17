@@ -176,7 +176,7 @@ async function initArchive() {
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
             ${item.patreonUrl
-              ? `<a href="${item.patreonUrl}" target="_blank">▶ Patreonリンク</a><br>`
+              ? `<a href="${item.patreonUrl}" target="_blank">Patreonリンク</a><br>`
               : ""}
             ${getZipLinkContent(item)}
           </div>

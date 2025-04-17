@@ -114,17 +114,27 @@ function initAdmin() {
     else           entries[id] = newEntry;
 
     // バックエンドへ保存
-    const res = await fetch(UPDATE_ENDPOINT, {
+  const res = await fetch(UPDATE_ENDPOINT, {
       method:  "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(entries)
-    });
-    if (!res.ok) {
-      msgEl.textContent = "保存に失敗しました。";
+  });
+
+    let result;
+    try {
+      result = await res.json();
+    } catch {
+      msgEl.textContent = `保存に失敗しました（レスポンス解析エラー）。`;
       return;
     }
 
-    // 成功時は再描画＆メッセージ
+    if (!res.ok || !result.success) {
+      msgEl.textContent = `保存に失敗しました：${result.error || res.statusText}`;
+      return;
+    }
+
+    // 正常時
     renderEntries();
     msgEl.textContent = id==="" ? "新規登録しました。" : "更新しました。";
     form.reset();

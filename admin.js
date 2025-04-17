@@ -90,6 +90,7 @@ function initAdmin() {
     form.series.value    = e.category.series;
     form.character.value = e.category.character;
     form.tags.value      = e.tags.join(", ");
+    form.patreonUrl.value = e.patreonUrl || "";
     form.url.value       = e.url;
     form.entryId.value   = idx;
   }
@@ -112,6 +113,7 @@ function initAdmin() {
         character: form.character.value.trim()
       },
       tags: form.tags.value.split(",").map(t=>t.trim()).filter(t=>t),
+      patreonUrl: form.patreonUrl.value.trim(),
       url: form.url.value.trim()
     };
     const id = form.entryId.value;

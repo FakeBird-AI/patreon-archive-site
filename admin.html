@@ -13,6 +13,7 @@
 <body>
   <header>
     <h1>管理ページ</h1>
+    <button id="goHome" style="float:right; margin-top:1rem;">ホームに戻る</button>
     <p>アーカイブの新規登録／編集が可能です。（Owner ロールのみ利用可）</p>
   </header>
 
@@ -70,5 +71,10 @@
     <h2>既存エントリー一覧</h2>
     <div id="entries"></div>
   </section>
+
+  <script>
+    document.getElementById("goHome")
+      .addEventListener("click", () => location.href = "index.html");
+  </script>
 </body>
 </html>

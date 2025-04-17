@@ -208,6 +208,3 @@ async function initArchive() {
       document.querySelector("aside").classList.toggle("open");
     });
 }
-
-// DOMContentLoaded 時に実行
-document.addEventListener("DOMContentLoaded", initArchive);

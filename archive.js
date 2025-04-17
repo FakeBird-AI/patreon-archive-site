@@ -189,8 +189,9 @@ async function initArchive() {
     render();
   });
   
-  // 検索ボックスの下に置く例
-  searchBox.parentNode.insertBefore(clearCharBtn, searchBox.nextSibling);
+  // 左メニュー（#tag-list）の下部にキャラ選択解除ボタンを配置
+  const tagList = document.getElementById("tag-list");
+  tagList.appendChild(clearCharBtn);
 
   // ハンバーガー開閉
   document.getElementById("hamburger")

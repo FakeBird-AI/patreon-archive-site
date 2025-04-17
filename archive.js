@@ -180,6 +180,21 @@ async function initArchive() {
   render();
   searchBox.addEventListener("input", render);
 
+  // キャラ選択解除ボタンを追加
+  const clearCharBtn = document.createElement("button");
+  clearCharBtn.textContent = "キャラ選択解除";
+  clearCharBtn.style.margin = "0.5rem";
+  clearCharBtn.addEventListener("click", () => {
+    selectedCharacter = null;
+    render();
+  });
+  
+  // 検索ボックスの下に置く例
+  searchBox.parentNode.insertBefore(clearCharBtn, searchBox.nextSibling);
+
+  // ハンバーガー開閉
+  document.getElementById("hamburger")
+    .addEventListener("click", () => document.querySelector("aside").classList.toggle("open"));
   // ハンバーガー開閉
   document.getElementById("hamburger")
     .addEventListener("click", () => document.querySelector("aside").classList.toggle("open"));
@@ -187,5 +202,3 @@ async function initArchive() {
   // 管理ページリンクを追加
   appendAdminLink();
 }
-
-// auth.js 側でログイン成功後に initArchive() を呼んでいる前提なので、ここでは呼び出し不要

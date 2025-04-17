@@ -190,8 +190,8 @@ async function initArchive() {
   });
   
   // 左メニュー（#tag-list）の下部にキャラ選択解除ボタンを配置
-  //const tagList = document.getElementById("tag-list");
-  //tagList.appendChild(clearCharBtn);
+  const tagList = document.getElementById("tag-list");
+  tagList.appendChild(clearCharBtn);
 
   // ハンバーガー開閉
   document.getElementById("hamburger")

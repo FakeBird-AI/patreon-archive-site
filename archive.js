@@ -70,7 +70,7 @@ async function initArchive() {
   const searchBox  = document.getElementById("search-box");
 
   // ── 初期状態でモバイルメニュー閉じる ──
-  const asideEl = document.querySelector("aside");
+  const asideEl = document.getElementById("tag-list");
   asideEl.classList.remove("open");
 
   // 1) データ取得＆JSON化
@@ -187,7 +187,7 @@ async function initArchive() {
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
             ${item.patreonUrl
-              ? `<a href="${item.patreonUrl}" target="_blank">▶ Patreonリンク</a><br>`
+              ? `<a href="${item.patreonUrl}" target="_blank">Patreonリンク</a><br>`
               : ""}
             ${getZipLinkContent(item)}
           </div>
@@ -218,10 +218,6 @@ async function initArchive() {
   // ── ハンバーガー開閉（モバイルだけ） ──
   const hamburgerBtn = document.getElementById("hamburger");
   hamburgerBtn.addEventListener("click", () => {
-    if (window.innerWidth <= 768) {
-      asideEl.classList.toggle("open");
-    }
+    asideEl.classList.toggle("open");
   });
 }
-
-// auth.js から initArchive() を呼び出します

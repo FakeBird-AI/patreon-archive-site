@@ -5,7 +5,7 @@ const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
 
 let selectedCharacter = null;
 
-// YYYYMMDD形式 → Date
+// YYYYMMDD形式 → Date オブジェクト変換
 function parseDate(dateStr) {
   const y = parseInt(dateStr.slice(0, 4), 10);
   const m = parseInt(dateStr.slice(4, 6), 10) - 1;
@@ -13,7 +13,7 @@ function parseDate(dateStr) {
   return new Date(y, m, d);
 }
 
-// ZIPリンク／メッセージ
+// ZIPリンク／メッセージを返す
 function getZipLinkContent(item) {
   const PRIORITY = {
     "1350114997040316458": 4, // Owner
@@ -29,7 +29,7 @@ function getZipLinkContent(item) {
     }
   });
 
-  const fileDate = parseDate(item.date);
+  const fileDate    = parseDate(item.date);
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const recent = fileDate >= oneMonthAgo;
@@ -51,7 +51,7 @@ function getZipLinkContent(item) {
   }
 }
 
-// 管理ページリンク
+// 管理ページリンク（Owner のみ表示）
 function appendAdminLink() {
   if ((window.userRoles || []).includes("1350114997040316458")) {
     const linkDiv = document.createElement("div");
@@ -69,10 +69,10 @@ async function initArchive() {
   const tagList    = document.getElementById("tag-list");
   const searchBox  = document.getElementById("search-box");
 
-  // データ取得
+  // 1) データ取得と JSON パース
   let data = [];
   try {
-    const res = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
+    const res  = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
     data = await res.json();
   } catch (e) {
     console.error("data.json の取得失敗", e);
@@ -85,7 +85,7 @@ async function initArchive() {
     return;
   }
 
-  // ソート
+  // 新しい順にソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
   // ── タグツリー構築 ──
@@ -114,7 +114,6 @@ async function initArchive() {
       const open = seriesDiv.style.display === "block";
       seriesDiv.style.display = open ? "none" : "block";
       typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
-      asideEl.classList.remove("open");
     });
 
     typeDiv.append(typeToggle, seriesDiv);
@@ -134,7 +133,6 @@ async function initArchive() {
         const open = charList.style.display === "block";
         charList.style.display = open ? "none" : "block";
         seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
-        asideEl.classList.remove("open");
       });
 
       chars.forEach(character => {
@@ -144,7 +142,6 @@ async function initArchive() {
         btn.addEventListener("click", () => {
           selectedCharacter = character;
           render();
-          asideEl.classList.remove("open");
         });
         charList.appendChild(btn);
       });
@@ -183,7 +180,7 @@ async function initArchive() {
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
             ${item.patreonUrl
-              ? `<a href="${item.patreonUrl}" target="_blank">Patreonリンク</a><br>`
+              ? `<a href="${item.patreonUrl}" target="_blank">▶ Patreonリンク</a><br>`
               : ""}
             ${getZipLinkContent(item)}
           </div>
@@ -205,14 +202,13 @@ async function initArchive() {
   clearBtn.addEventListener("click", () => {
     selectedCharacter = null;
     render();
-    asideEl.classList.remove("open");
   });
   tagList.appendChild(clearBtn);
 
   // 管理ページリンク
   appendAdminLink();
 
-  // ── ハンバーガー開閉 ──
+  // ── ハンバーガー開閉（モバイルのみ） ──
   const hamburger = document.getElementById("hamburger");
   const asideEl   = document.querySelector("aside");
   hamburger.addEventListener("click", () => {
@@ -220,6 +216,17 @@ async function initArchive() {
       asideEl.classList.toggle("open");
     }
   });
-} // ← initArchive 閉じ
 
-// initArchive() の呼び出しは auth.js から行う
+  // ── メニュー内選択時に自動で閉じる ──
+  document
+    .querySelectorAll("#tag-list .type-toggle, #tag-list .series-toggle, #tag-list div > button")
+    .forEach(el => {
+      el.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          asideEl.classList.remove("open");
+        }
+      });
+    });
+}
+
+// initArchive() の呼び出しは auth.js から行います

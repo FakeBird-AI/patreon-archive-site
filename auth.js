@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ログイン前はサイドメニューとハンバーガーを隠す
-  if (tagList)   tagList.style.display   = "none";
+  //if (tagList)   tagList.style.display   = "none";
   if (hamburger) hamburger.style.display = "none";
 
   // URLフラグメント (#token=…) があれば Cookie に保存
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
           loginSec.style.display   = "block";
           welcomeSec.style.display = "none";
           contentSec.style.display = "none";
-          tagList.style.display    = "none";
+          //tagList.style.display    = "none";
           hamburger.style.display  = "none";
         }
       })

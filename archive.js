@@ -216,7 +216,9 @@ async function initArchive() {
   const hamburger = document.getElementById("hamburger");
   const asideEl   = document.querySelector("aside");
   hamburger.addEventListener("click", () => {
-    asideEl.classList.toggle("open");
+    if (window.innerWidth <= 768) {
+      asideEl.classList.toggle("open");
+    }
   });
 } // ← initArchive 閉じ
 

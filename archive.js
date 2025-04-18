@@ -218,9 +218,9 @@ async function initArchive() {
   // ── ハンバーガー開閉（モバイルだけ） ──
   const hamburgerBtn = document.getElementById("hamburger");
   hamburgerBtn.addEventListener("click", () => {
-    //if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 768) {
       asideEl.classList.toggle("open");
-    //}
+    }
   });
 }
 

@@ -5,7 +5,7 @@ const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
 
 let selectedCharacter = null;
 
-// YYYYMMDD形式の文字列をDateオブジェクトに変換
+// YYYYMMDD形式 → Date
 function parseDate(dateStr) {
   const y = parseInt(dateStr.slice(0, 4), 10);
   const m = parseInt(dateStr.slice(4, 6), 10) - 1;
@@ -13,7 +13,7 @@ function parseDate(dateStr) {
   return new Date(y, m, d);
 }
 
-// ZIPリンク／メッセージを返す
+// ZIPリンク／メッセージ
 function getZipLinkContent(item) {
   const PRIORITY = {
     "1350114997040316458": 4, // Owner
@@ -29,7 +29,7 @@ function getZipLinkContent(item) {
     }
   });
 
-  const fileDate    = parseDate(item.date);
+  const fileDate = parseDate(item.date);
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const recent = fileDate >= oneMonthAgo;
@@ -51,12 +51,12 @@ function getZipLinkContent(item) {
   }
 }
 
-// Owner用の管理ページリンク追加
+// 管理ページリンク
 function appendAdminLink() {
   if ((window.userRoles || []).includes("1350114997040316458")) {
     const linkDiv = document.createElement("div");
-    linkDiv.style.marginTop   = "2rem";
-    linkDiv.style.textAlign   = "center";
+    linkDiv.style.marginTop = "2rem";
+    linkDiv.style.textAlign = "center";
     linkDiv.innerHTML = '<a href="admin.html" target="_blank">管理ページへ</a>';
     document.getElementById("tag-list").appendChild(linkDiv);
   }
@@ -69,7 +69,7 @@ async function initArchive() {
   const tagList    = document.getElementById("tag-list");
   const searchBox  = document.getElementById("search-box");
 
-  // 1) データ取得と JSON パース
+  // データ取得
   let data = [];
   try {
     const res = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
@@ -85,7 +85,7 @@ async function initArchive() {
     return;
   }
 
-  // 新しい順にソート
+  // ソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
   // ── タグツリー構築 ──
@@ -100,9 +100,11 @@ async function initArchive() {
   });
 
   Object.entries(tree).forEach(([type, seriesMap]) => {
+    // タイプ
     const typeDiv    = document.createElement("div");
     const typeToggle = document.createElement("div");
     typeToggle.textContent = `▶ ${type}`;
+    typeToggle.classList.add("type-toggle");
     Object.assign(typeToggle.style, { fontWeight:"bold", cursor:"pointer", margin:"0.5rem 0" });
     const seriesDiv = document.createElement("div");
     seriesDiv.style.display    = "none";
@@ -110,16 +112,19 @@ async function initArchive() {
 
     typeToggle.addEventListener("click", () => {
       const open = seriesDiv.style.display === "block";
-      seriesDiv.style.display   = open ? "none" : "block";
-      typeToggle.textContent    = `${open ? "▶" : "▼"} ${type}`;
+      seriesDiv.style.display = open ? "none" : "block";
+      typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
+      asideEl.classList.remove("open");
     });
 
     typeDiv.append(typeToggle, seriesDiv);
     tagList.appendChild(typeDiv);
 
+    // シリーズ
     Object.entries(seriesMap).forEach(([series, chars]) => {
       const seriesToggle = document.createElement("div");
       seriesToggle.textContent = `▶ ${series}`;
+      seriesToggle.classList.add("series-toggle");
       Object.assign(seriesToggle.style, { cursor:"pointer", marginLeft:"0.5rem" });
       const charList = document.createElement("div");
       charList.style.display    = "none";
@@ -129,6 +134,7 @@ async function initArchive() {
         const open = charList.style.display === "block";
         charList.style.display = open ? "none" : "block";
         seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
+        asideEl.classList.remove("open");
       });
 
       chars.forEach(character => {
@@ -138,6 +144,7 @@ async function initArchive() {
         btn.addEventListener("click", () => {
           selectedCharacter = character;
           render();
+          asideEl.classList.remove("open");
         });
         charList.appendChild(btn);
       });
@@ -191,7 +198,6 @@ async function initArchive() {
   searchBox.addEventListener("input", render);
 
   // ── 左メニュー下部にボタン類を追加 ──
-  // 1) キャラ選択解除
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "キャラ選択解除";
   clearBtn.style.display = "block";
@@ -199,15 +205,19 @@ async function initArchive() {
   clearBtn.addEventListener("click", () => {
     selectedCharacter = null;
     render();
+    asideEl.classList.remove("open");
   });
   tagList.appendChild(clearBtn);
 
-  // 2) 管理ページリンク（Ownerのみ表示）
+  // 管理ページリンク
   appendAdminLink();
 
   // ── ハンバーガー開閉 ──
-  document.getElementById("hamburger")
-    .addEventListener("click", () => {
-      document.querySelector("aside").classList.toggle("open");
-    });
-}
+  const hamburger = document.getElementById("hamburger");
+  const asideEl   = document.querySelector("aside");
+  hamburger.addEventListener("click", () => {
+    asideEl.classList.toggle("open");
+  });
+} // ← initArchive 閉じ
+
+// initArchive() の呼び出しは auth.js から行う

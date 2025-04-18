@@ -5,7 +5,7 @@ const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
 
 let selectedCharacter = null;
 
-// YYYYMMDD形式 → Date オブジェクト変換
+// YYYYMMDD形式 → Date オブジェクトに変換
 function parseDate(dateStr) {
   const y = parseInt(dateStr.slice(0, 4), 10);
   const m = parseInt(dateStr.slice(4, 6), 10) - 1;
@@ -51,7 +51,7 @@ function getZipLinkContent(item) {
   }
 }
 
-// 管理ページリンク（Owner のみ表示）
+// Owner用の「管理ページへ」リンク追加
 function appendAdminLink() {
   if ((window.userRoles || []).includes("1350114997040316458")) {
     const linkDiv = document.createElement("div");
@@ -69,10 +69,14 @@ async function initArchive() {
   const tagList    = document.getElementById("tag-list");
   const searchBox  = document.getElementById("search-box");
 
-  // 1) データ取得と JSON パース
+  // ── 初期状態でモバイルメニュー閉じる ──
+  const asideEl = document.querySelector("aside");
+  asideEl.classList.remove("open");
+
+  // 1) データ取得＆JSON化
   let data = [];
   try {
-    const res  = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
+    const res = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
     data = await res.json();
   } catch (e) {
     console.error("data.json の取得失敗", e);
@@ -85,7 +89,7 @@ async function initArchive() {
     return;
   }
 
-  // 新しい順にソート
+  // 新しい順ソート
   data.sort((a, b) => b.date.localeCompare(a.date));
 
   // ── タグツリー構築 ──
@@ -114,6 +118,7 @@ async function initArchive() {
       const open = seriesDiv.style.display === "block";
       seriesDiv.style.display = open ? "none" : "block";
       typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
+      if (window.innerWidth <= 768) asideEl.classList.remove("open");
     });
 
     typeDiv.append(typeToggle, seriesDiv);
@@ -133,6 +138,7 @@ async function initArchive() {
         const open = charList.style.display === "block";
         charList.style.display = open ? "none" : "block";
         seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
+        if (window.innerWidth <= 768) asideEl.classList.remove("open");
       });
 
       chars.forEach(character => {
@@ -142,6 +148,7 @@ async function initArchive() {
         btn.addEventListener("click", () => {
           selectedCharacter = character;
           render();
+          if (window.innerWidth <= 768) asideEl.classList.remove("open");
         });
         charList.appendChild(btn);
       });
@@ -190,11 +197,10 @@ async function initArchive() {
     });
   }
 
-  // 初回描画＆検索連動
   render();
   searchBox.addEventListener("input", render);
 
-  // ── 左メニュー下部にボタン類を追加 ──
+  // ── 左メニュー下部に「キャラ選択解除」ボタン ──
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "キャラ選択解除";
   clearBtn.style.display = "block";
@@ -202,31 +208,20 @@ async function initArchive() {
   clearBtn.addEventListener("click", () => {
     selectedCharacter = null;
     render();
+    if (window.innerWidth <= 768) asideEl.classList.remove("open");
   });
   tagList.appendChild(clearBtn);
 
-  // 管理ページリンク
+  // ── 「管理ページへ」リンク ──
   appendAdminLink();
 
-  // ── ハンバーガー開閉（モバイルのみ） ──
-  const hamburger = document.getElementById("hamburger");
-  const asideEl   = document.querySelector("aside");
-  hamburger.addEventListener("click", () => {
+  // ── ハンバーガー開閉（モバイルだけ） ──
+  const hamburgerBtn = document.getElementById("hamburger");
+  hamburgerBtn.addEventListener("click", () => {
     if (window.innerWidth <= 768) {
       asideEl.classList.toggle("open");
     }
   });
-
-  // ── メニュー内選択時に自動で閉じる ──
-  document
-    .querySelectorAll("#tag-list .type-toggle, #tag-list .series-toggle, #tag-list div > button")
-    .forEach(el => {
-      el.addEventListener("click", () => {
-        if (window.innerWidth <= 768) {
-          asideEl.classList.remove("open");
-        }
-      });
-    });
 }
 
-// initArchive() の呼び出しは auth.js から行います
+// auth.js から initArchive() を呼び出します

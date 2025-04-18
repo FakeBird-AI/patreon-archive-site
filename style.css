@@ -1,49 +1,15 @@
 /* ---------------------------------------- */
-/* 1. デスクトップ（769px 以上）          */
-/*    ・サイドバーは常に表示                */
-/*    ・ハンバーガーは非表示               */
-/* ---------------------------------------- */
-@media (min-width: 769px) {
-  #hamburger {
-    display: none !important;
-  }
-  aside {
-    display: block !important;
-  }
-}
-
-/* ---------------------------------------- */
-/* 2. モバイル（768px 以下）               */
-/*    ・ハンバーガーを表示                  */
-/*    ・aside は open クラスでのみ表示       */
-/* ---------------------------------------- */
-@media (max-width: 768px) {
-  /* ハンバーガー表示 */
-  #hamburger {
-    display: block !important;
-  }
-
-  /* 初期はサイドバーを隠す */
-  aside {
-    display: none;
-  }
-
-  /* open クラスがついたときだけ出す */
-  aside.open {
-    display: block;
-  }
-}
-
-/* ---------------------------------------- */
-/* それ以外の共通スタイルはそのまま          */
+/* 共通スタイル                             */
 /* ---------------------------------------- */
 body {
   font-family: sans-serif;
   margin: 0;
   display: flex;
+  flex-direction: row;
   background: #f4f4f4;
 }
 
+/* 左メニュー */
 aside {
   width: 220px;
   background: #eee;
@@ -52,6 +18,7 @@ aside {
   overflow-y: auto;
 }
 
+/* 右本文 */
 main {
   flex: 1;
   padding: 2rem;
@@ -59,6 +26,18 @@ main {
   position: relative;
 }
 
+/* ハンバーガー（デフォルト隠す） */
+#hamburger {
+  display: none;
+  background: #444;
+  color: white;
+  padding: 0.8rem;
+  text-align: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* 検索 */
 #search-box {
   width: 100%;
   padding: 0.5rem;
@@ -67,6 +46,62 @@ main {
   box-sizing: border-box;
 }
 
+/* 各アイテム */
 .item {
   margin-bottom: 1rem;
+}
+
+/* ---------------------------------------- */
+/* モバイル用スタイル (max-width: 768px)   */
+/* ---------------------------------------- */
+@media (max-width: 768px) {
+  /* レイアウトを縦並びに */
+  body {
+    flex-direction: column;
+  }
+
+  /* ハンバーガーを表示 */
+  #hamburger {
+    display: block;
+  }
+
+  /* サイドバーは初期非表示、openクラスで表示 */
+  aside {
+    display: none;
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    overflow-y: auto;
+    border-bottom: 1px solid #ccc;
+  }
+  aside.open {
+    display: block;
+  }
+
+  /* 本文の余白を少し狭く */
+  main {
+    padding: 1rem;
+  }
+
+  /* 検索バーを固定 */
+  #search-box {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+  }
+}
+
+/* ---------------------------------------- */
+/* デスクトップ用スタイル (min-width: 769px) */
+/* ---------------------------------------- */
+@media (min-width: 769px) {
+  /* ハンバーガーは常に隠す */
+  #hamburger {
+    display: none !important;
+  }
+  /* サイドバーは常に表示 */
+  aside {
+    display: block !important;
+  }
 }

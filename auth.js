@@ -6,10 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return match ? decodeURIComponent(match[1]) : null;
   }
   
-  // --- ハンバーガーボタンはログイン前は非表示 ---
-  const hamburger = document.getElementById("hamburger");
-  if (hamburger) hamburger.style.display = "none";
-  
   // 要素取得
   const loginSec   = document.getElementById("login-section");
   const welcomeSec = document.getElementById("welcome-section");
@@ -48,10 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
           loginSec.style.display   = "none";
           welcomeSec.style.display = "block";
           contentSec.style.display = "block";
-          // --- サイドメニュー＆ハンバーガーを表示 ---
           tagList.style.display    = "block";
-          if (hamburger) hamburger.style.display = "block";
-
           usernameSpan.textContent = data.username || "ユーザー";
           window.userRoles = data.roles || [];
 
@@ -61,8 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
           loginSec.style.display   = "block";
           welcomeSec.style.display = "none";
           contentSec.style.display = "none";
-          tagList.style.display    = "none";
-          if (hamburger) hamburger.style.display = "none";
         }
       })
       .catch(err => {
@@ -70,8 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loginSec.style.display   = "block";
         welcomeSec.style.display = "none";
         contentSec.style.display = "none";
-        tagList.style.display    = "none";
-        if (hamburger) hamburger.style.display = "none";
       });
   } else {
     // 未トークン時：ログイン画面のみ

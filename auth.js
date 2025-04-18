@@ -55,9 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
           loginSec.style.display   = "none";
           welcomeSec.style.display = "block";
           contentSec.style.display = "block";
-          tagList.style.display    = "block";
           hamburger.style.display  = "block";
-
           usernameSpan.textContent = data.username || "ユーザー";
           window.userRoles = data.roles || [];
 
@@ -67,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
           loginSec.style.display   = "block";
           welcomeSec.style.display = "none";
           contentSec.style.display = "none";
-          //tagList.style.display    = "none";
           hamburger.style.display  = "none";
         }
       })

@@ -10,17 +10,23 @@
   <script src="archive.js" defer></script>
 </head>
 <body>
+  <!-- ハンバーガー -->
   <div id="hamburger">☰ カテゴリ</div>
+  <!-- サイドメニュー -->
   <aside id="tag-list"></aside>
+
   <main>
+    <!-- ログイン前 -->
     <section id="login-section">
       <p id="login-status">ログインしてください。</p>
       <button id="login-btn">Discordでログイン</button>
     </section>
+    <!-- ログイン後 -->
     <section id="welcome-section" style="display:none;">
       <p>ようこそ、<span id="username"></span> さん！</p>
       <button id="logout-btn">ログアウト</button>
     </section>
+    <!-- アーカイブ一覧 -->
     <section id="content" style="display:none;">
       <input type="text" id="search-box" placeholder="キャラ・作品名で検索" />
       <div id="archive"></div>

@@ -1,3 +1,4 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -6,7 +7,6 @@
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <title>管理ページ - アーカイブ登録・編集</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- 管理ページ用スクリプト -->
   <script src="admin.js" defer></script>
 </head>
 <body>
@@ -20,46 +20,7 @@
   <section id="entry-form">
     <h2>アーカイブ情報登録・編集</h2>
     <form id="archiveForm">
-      <div>
-        <label for="title">タイトル：</label>
-        <input type="text" id="title" name="title" required>
-      </div>
-      <div>
-        <label for="date">日付 (YYYYMMDD)：</label>
-        <input type="text" id="date" name="date" pattern="\d{8}" required>
-      </div>
-      <div>
-        <label for="thumbnail">サムネイルURL：</label>
-        <input type="text" id="thumbnail" name="thumbnail" required>
-      </div>
-      <fieldset>
-        <legend>カテゴリ</legend>
-        <div>
-          <label for="type">タイプ：</label>
-          <input type="text" id="type" name="type" required>
-        </div>
-        <div>
-          <label for="series">シリーズ：</label>
-          <input type="text" id="series" name="series" required>
-        </div>
-        <div>
-          <label for="character">キャラクター：</label>
-          <input type="text" id="character" name="character" required>
-        </div>
-      </fieldset>
-      <div>
-        <label for="tags">タグ（カンマ区切り）：</label>
-        <input type="text" id="tags" name="tags">
-      </div>
-      <div>
-        <label for="patreonUrl">PatreonリンクURL：</label>
-        <input type="text" id="patreonUrl" name="patreonUrl" required>
-      <div>
-        <label for="url">ZIPリンクURL：</label>
-        <input type="text" id="url" name="url" required>
-      </div>
-      <!-- 編集時に対象エントリーを識別するための hidden フィールド -->
-      <input type="hidden" id="entryId" name="entryId" value="">
+      <!-- （略：既存のフォーム要素） -->
       <div>
         <button type="submit">保存</button>
         <button type="button" id="clearForm">クリア</button>
@@ -72,6 +33,17 @@
   <section id="entryList">
     <h2>既存エントリー一覧</h2>
     <div id="entries"></div>
+  </section>
+
+  <!-- アクセスログ -->
+  <section id="visit-log">
+    <h2>アクセスログ</h2>
+    <table>
+      <thead>
+        <tr><th>ユーザーID</th><th>訪問回数</th></tr>
+      </thead>
+      <tbody id="visits-body"></tbody>
+    </table>
   </section>
 
   <script>

@@ -1,5 +1,4 @@
 // admin.js
-
 // Worker のエンドポイント
 const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
 
@@ -14,26 +13,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.innerHTML = "<p>ログインが必要です。</p>";
     return;
   }
-
-  // ② verify API に Authorization ヘッダ付きで問い合わせ
+  // ② verify API で認証チェック
   fetch(`${API_ORIGIN}/verify`, {
     method: "GET",
     credentials: "include",
-    headers: {
-      "Authorization": `Bearer ${sessionToken}`
-    }
+    headers: { "Authorization": `Bearer ${sessionToken}` }
   })
     .then(res => res.json())
     .then(data => {
-      if (!data.loggedIn || !Array.isArray(data.roles)) {
-        document.body.innerHTML = "<p>ログインが必要です。</p>";
-        return;
-      }
-      if (!data.roles.includes("1350114997040316458")) {
+      if (!data.loggedIn || !data.roles.includes("1350114997040316458")) {
         document.body.innerHTML = "<p>このページはOwnerロール保持者のみ利用できます。</p>";
         return;
       }
-      // ③ Owner 確認OK → 管理画面初期化
       initAdmin();
     })
     .catch(() => {
@@ -42,24 +33,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initAdmin() {
-  const form     = document.getElementById("archiveForm");
+  const form = document.getElementById("archiveForm");
   const clearBtn = document.getElementById("clearForm");
-  const msgEl    = document.getElementById("formMessage");
+  const msgEl = document.getElementById("formMessage");
   const entriesDiv = document.getElementById("entries");
-
   let entries = [];
-  // data.json を Cloudflare Worker から読み込んで一覧表示
-  fetch(`${API_ORIGIN}/data.json`, {
-    credentials: "include"
-  })
+
+  // 既存データ読み込み
+  fetch(`${API_ORIGIN}/data.json`, { credentials: "include" })
     .then(r => r.json())
-    .then(data => {
-      entries = data;
-      renderEntries();
-    })
-    .catch(() => {
-      entriesDiv.innerHTML = "<p>既存エントリーの読み込みに失敗しました。</p>";
-    });
+    .then(data => { entries = data; renderEntries(); })
+    .catch(() => { entriesDiv.innerHTML = "<p>既存エントリーの読み込みに失敗しました。</p>"; });
 
   function renderEntries() {
     entriesDiv.innerHTML = "";
@@ -76,43 +60,42 @@ function initAdmin() {
     });
     entriesDiv.querySelectorAll(".editEntry").forEach(btn => {
       btn.addEventListener("click", ev => {
-        const idx = +ev.target.dataset.index;
-        fillForm(entries[idx], idx);
+        fillForm(entries[+ev.target.dataset.index], +ev.target.dataset.index);
       });
     });
   }
 
   function fillForm(e, idx) {
-    form.title.value     = e.title;
-    form.date.value      = e.date;
+    form.title.value = e.title;
+    form.date.value = e.date;
     form.thumbnail.value = e.thumbnail;
-    form.type.value      = e.category.type;
-    form.series.value    = e.category.series;
+    form.type.value = e.category.type;
+    form.series.value = e.category.series;
     form.character.value = e.category.character;
-    form.tags.value      = e.tags.join(", ");
+    form.tags.value = e.tags.join(", ");
     form.patreonUrl.value = e.patreonUrl || "";
-    form.url.value       = e.url;
-    form.entryId.value   = idx;
+    form.url.value = e.url;
+    form.entryId.value = idx;
   }
 
   clearBtn.addEventListener("click", () => {
     form.reset();
     form.entryId.value = "";
-    msgEl.textContent  = "";
+    msgEl.textContent = "";
   });
 
   form.addEventListener("submit", async ev => {
     ev.preventDefault();
     const newEntry = {
-      title:     form.title.value.trim(),
-      date:      form.date.value.trim(),
+      title: form.title.value.trim(),
+      date: form.date.value.trim(),
       thumbnail: form.thumbnail.value.trim(),
       category: {
-        type:      form.type.value.trim(),
-        series:    form.series.value.trim(),
+        type: form.type.value.trim(),
+        series: form.series.value.trim(),
         character: form.character.value.trim()
       },
-      tags: form.tags.value.split(",").map(t=>t.trim()).filter(t=>t),
+      tags: form.tags.value.split(",").map(t => t.trim()).filter(t => t),
       patreonUrl: form.patreonUrl.value.trim(),
       url: form.url.value.trim()
     };
@@ -128,7 +111,7 @@ function initAdmin() {
     form.reset();
     form.entryId.value = "";
 
-    // Cloudflare Worker の更新 API を呼ぶ
+    // 更新API呼び出し
     const res = await fetch(`${API_ORIGIN}/api/update-data`, {
       method: "POST",
       credentials: "include",
@@ -141,9 +124,30 @@ function initAdmin() {
     }
   });
 
-  // 「ホームに戻る」ボタン
+  // ホーム戻る
   document.getElementById("goHome")
-    .addEventListener("click", () => {
-      location.href = "index.html";
-    });
+    .addEventListener("click", () => { location.href = "index.html"; });
+
+  // 訪問ログ取得・表示
+  fetch(`${API_ORIGIN}/admin/visits`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { "Authorization": `Bearer ${getCookie("session")}` }
+  })
+    .then(res => res.json())
+    .then(rows => {
+      const tbody = document.getElementById("visits-body");
+      rows.forEach(({ user, count }) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${user}</td><td>${count}</td>`;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(err => console.error("訪問ログ取得失敗", err));
+
+  // Cookieヘルパー
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 }

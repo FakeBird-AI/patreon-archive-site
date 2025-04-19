@@ -1,23 +1,29 @@
 /* style.css */
-/* モバイル右スライドイン + 管理ページ共通 */
+/* 共通リセット */
 body {
-  font-family: sans-serif;
   margin: 0;
+  font-family: sans-serif;
+  background: #f4f4f4;
   display: flex;
   flex-direction: row;
-  background: #f4f4f4;
 }
+
 /* ハンバーガー */
 #hamburger {
   display: none;
   background: #444;
   color: #fff;
   padding: 0.8rem;
-  text-align: center;
   font-size: 1.2rem;
   cursor: pointer;
+  transition: margin-right 0.3s ease-in-out;
   z-index: 30;
 }
+#hamburger.open {
+  /* aside(タグリスト)幅分だけスライド */
+  margin-right: 16rem;
+}
+
 /* サイドメニュー */
 #tag-list {
   width: 220px;
@@ -27,14 +33,17 @@ body {
   overflow-y: auto;
   transition: transform 0.3s ease-in-out;
 }
+
 /* デスクトップ: 常に表示 */
 @media (min-width: 769px) {
+  #hamburger { display: none; }
   #tag-list {
     transform: translateX(0) !important;
     position: static;
-    display: block;
   }
+  main { margin-left: 220px; padding: 1rem; }
 }
+
 /* モバイル: 右側からスライド */
 @media (max-width: 768px) {
   body { flex-direction: column; }

@@ -1,36 +1,53 @@
-<!-- index.html -->
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Patreon支援者限定アーカイブ</title>
+  <title>管理ページ - アーカイブ登録・編集</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="auth.js" defer></script>
-  <script src="archive.js" defer></script>
+  <script src="admin.js" defer></script>
 </head>
 <body>
-  <!-- ハンバーガー -->
-  <div id="hamburger">☰ カテゴリ</div>
-  <!-- サイドメニュー -->
-  <aside id="tag-list"></aside>
+  <header>
+    <h1>管理ページ</h1>
+    <p>アーカイブの新規登録／編集が可能です。（Ownerロールのみ）</p>
+    <button id="goHome" style="float:left; margin-top:1rem;">ホームに戻る</button>
+  </header>
 
-  <main>
-    <!-- ログイン前 -->
-    <section id="login-section">
-      <p id="login-status">ログインしてください。</p>
-      <button id="login-btn">Discordでログイン</button>
-    </section>
-    <!-- ログイン後 -->
-    <section id="welcome-section" style="display:none;">
-      <p>ようこそ、<span id="username"></span> さん！</p>
-      <button id="logout-btn">ログアウト</button>
-    </section>
-    <!-- アーカイブ一覧 -->
-    <section id="content" style="display:none;">
-      <input type="text" id="search-box" placeholder="キャラ・作品名で検索" />
-      <div id="archive"></div>
-    </section>
-  </main>
+  <section id="entry-form">
+    <h2>アーカイブ情報登録・編集</h2>
+    <form id="archiveForm">
+      <!-- 既存フォーム要素をすべてここに -->
+      <input type="hidden" name="entryId" />
+      <!-- title, date, thumbnail, type, series, character, tags, patreonUrl, url -->
+      <div>
+        <button type="submit">保存</button>
+        <button type="button" id="clearForm">クリア</button>
+      </div>
+    </form>
+    <p id="formMessage"></p>
+  </section>
+
+  <section id="entryList">
+    <h2>既存エントリー一覧</h2>
+    <div id="entries"></div>
+  </section>
+
+  <!-- ③ アクセスログ表示 -->
+  <section id="visit-log">
+    <h2>アクセスログ</h2>
+    <table>
+      <thead>
+        <tr><th>ユーザーID</th><th>訪問回数</th></tr>
+      </thead>
+      <tbody id="visits-body"></tbody>
+    </table>
+  </section>
+
+  <script>
+    document.getElementById("goHome")
+      .addEventListener("click", () => location.href = "index.html");
+  </script>
 </body>
 </html>

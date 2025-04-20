@@ -115,6 +115,7 @@ function initAdmin() {
       },
       tags: form.tags.value.split(",").map(t=>t.trim()).filter(t=>t),
       patreonUrl: form.patreonUrl.value.trim(),
+      boothUrl:   form.boothUrl.value.trim(),
       url: form.url.value.trim()
     };
     const id = form.entryId.value;

@@ -91,6 +91,7 @@ function initAdmin() {
     form.character.value = e.category.character;
     form.tags.value      = e.tags.join(", ");
     form.patreonUrl.value = e.patreonUrl || "";
+    form.boothUrl.value    = e.boothUrl   || "";
     form.url.value       = e.url;
     form.entryId.value   = idx;
   }

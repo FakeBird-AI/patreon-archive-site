@@ -37,15 +37,15 @@ function getZipLinkContent(item) {
   switch (role) {
     case "1350114997040316458": // Owner
     case "1350114869780680734": // Premium
-      return `<a href="${item.url}" target="_blank">ZIPリンク</a>`;
+      return `<a href="${item.url}" target="_blank">▶ ZIPリンク</a>`;
     case "1350114736242557010": // Special
       return recent
-        ? `<a href="${item.url}" target="_blank">ZIPリンク</a>`
-        : "1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。";
+        ? `<a href="${item.url}" target="_blank">▶ ZIPリンク</a>`
+        : "ZIPリンク(1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。)";
     case "1350114379391045692": // Standard
       return recent
         ? "PremiumもしくはSpecialにアップグレードすると閲覧可能です。"
-        : "1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。";
+        : "ZIPリンク(1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。)";
     default:
       return "このコンテンツにアクセスできません。";
   }
@@ -186,9 +186,12 @@ async function initArchive() {
           <div>
             <strong>${item.title}</strong><br>
             <small>${item.date}</small><br>
-            ${item.patreonUrl
-              ? `<a href="${item.patreonUrl}" target="_blank">Patreonリンク</a><br>`
-              : ""}
+        ${item.boothUrl
+          ? `<a href="${item.boothUrl}" target="_blank">▶ BOOTHリンク</a><br>`
+          : ""}
+        ${item.patreonUrl
+          ? `<a href="${item.patreonUrl}" target="_blank">▶ Patreonリンク</a><br>`
+          : ""}
             ${getZipLinkContent(item)}
           </div>
         </div>

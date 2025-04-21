@@ -1,0 +1,4 @@
+name = "patreon-archive-site"
+main = "src/Worker.js"
+workers_dev = true
+compatibility_date = "2025-04-20"

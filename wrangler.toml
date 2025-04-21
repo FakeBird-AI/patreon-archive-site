@@ -1,0 +1,6 @@
+# wrangler.toml
+name               = "patreon-archive-site"      # Cloudflare 上のスクリプト名
+account_id         = "763a47af6a6b725d409035080552cd6f"       # ダッシュボードで確認した 32 文字の英数字
+compatibility_date = "2025-04-20"                # 今日の日付 (YYYY‑MM‑DD)
+main               = "Worker.js"                 # エントリポイントファイル
+workers_dev        = true                         # workers.dev サブドメインにデプロイ

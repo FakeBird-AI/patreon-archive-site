@@ -1,7 +1,6 @@
 // Worker.js
 
-const CLIENT_ID        = "1361347551244189888";
-const CLIENT_SECRET    = "KNbHhCS4nJWVXnwpvnBaYRv--c0sIcr4";
+const CLIENT_ID     = "1361347551244189888";
 const GUILD_ID         = "1350113813818773534";
 const ALLOWED_ROLE_IDS = [
   "1350114869780680734", // Premium
@@ -22,6 +21,8 @@ export default {
   async fetch(request, env) {
     const url  = new URL(request.url);
     const path = url.pathname;
+    const CLIENT_ID     = env.CLIENT_ID;
+    const CLIENT_SECRET = env.CLIENT_SECRET;
 
     // 1) CORS プリフライト対応
     if (request.method === "OPTIONS") {

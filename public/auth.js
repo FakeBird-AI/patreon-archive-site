@@ -1,4 +1,8 @@
 // auth.js
+
+// Cloudflare Worker のエンドポイントを定義
+const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- Cookie取得ヘルパー ---
   function getCookie(name) {
@@ -7,15 +11,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 要素取得 ---
-  const loginSec    = document.getElementById("login-section");
-  const welcomeSec  = document.getElementById("welcome-section");
-  const contentSec  = document.getElementById("content");
-  const tagList     = document.getElementById("tag-list");    // サイドメニュー
-  const hamburger   = document.getElementById("hamburger");   // ハンバーガー
-  const loginStatus = document.getElementById("login-status");
+  const loginSec     = document.getElementById("login-section");
+  const welcomeSec   = document.getElementById("welcome-section");
+  const contentSec   = document.getElementById("content");
+  const tagList      = document.getElementById("tag-list");    // サイドメニュー
+  const hamburger    = document.getElementById("hamburger");   // ハンバーガー
+  const loginStatus  = document.getElementById("login-status");
   const usernameSpan = document.getElementById("username");
-  const loginBtn    = document.getElementById("login-btn");
-  const logoutBtn   = document.getElementById("logout-btn");
+  const loginBtn     = document.getElementById("login-btn");
+  const logoutBtn    = document.getElementById("logout-btn");
 
   // --- ログアウト時クエリ (?logout=true) の処理 ---
   const urlParams = new URLSearchParams(window.location.search);
@@ -23,12 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cookie を削除
     document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
     loginStatus.textContent = "ログアウトしました。";
-    // ?logout=true を URL から消す
+    // URLフラグメントとクエリをクリア
     history.replaceState(null, "", window.location.pathname);
   }
 
-  // ログイン前はサイドメニューとハンバーガーを隠す
-  //if (tagList)   tagList.style.display   = "none";
+  // 未ログイン時はメニュー類を隠す
+  if (tagList)   tagList.style.display   = "none";
   if (hamburger) hamburger.style.display = "none";
 
   // URLフラグメント (#token=…) があれば Cookie に保存
@@ -41,9 +45,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // session トークン取得
   const sessionToken = getCookie("session");
 
+  // --- 認証フロー ---
   if (sessionToken) {
-    // 認証確認API
-    fetch("https://patreon-archive-site.fakebird279.workers.dev/verify", {
+    fetch(`${API_ORIGIN}/verify`, {
       method: "GET",
       credentials: "include",
       headers: { "Authorization": `Bearer ${sessionToken}` }
@@ -51,21 +55,22 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         if (data.loggedIn) {
-          // ログイン成功：UI切り替え＋メニュー／ハンバーガー表示
+          // ログイン成功：UI切り替え
           loginSec.style.display   = "none";
           welcomeSec.style.display = "block";
           contentSec.style.display = "block";
-          hamburger.style.display  = "block";
+          if (tagList)   tagList.style.display   = "block";
+          if (hamburger) hamburger.style.display = "block";
           usernameSpan.textContent = data.username || "ユーザー";
-          window.userRoles = data.roles || [];
+          window.userRoles         = data.roles   || [];
 
+          // アーカイブ初期化
           if (typeof initArchive === "function") initArchive();
         } else {
-          // 認証失敗時：再度隠す
+          // 認証失敗：ログイン画面へ
           loginSec.style.display   = "block";
           welcomeSec.style.display = "none";
           contentSec.style.display = "none";
-          hamburger.style.display  = "none";
         }
       })
       .catch(err => {
@@ -73,23 +78,19 @@ document.addEventListener("DOMContentLoaded", () => {
         loginSec.style.display   = "block";
         welcomeSec.style.display = "none";
         contentSec.style.display = "none";
-        tagList.style.display    = "none";
-        hamburger.style.display  = "none";
       });
   } else {
     // 未ログイントークン時
     loginSec.style.display   = "block";
     welcomeSec.style.display = "none";
     contentSec.style.display = "none";
-    tagList.style.display    = "none";
-    hamburger.style.display  = "none";
   }
 
   // Discordログイン／ログアウト
   loginBtn.addEventListener("click", () => {
-    window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/login";
+    window.location.href = `${API_ORIGIN}/login`;
   });
   logoutBtn.addEventListener("click", () => {
-    window.location.href = "https://patreon-archive-site.fakebird279.workers.dev/logout";
+    window.location.href = `${API_ORIGIN}/logout`;
   });
 });

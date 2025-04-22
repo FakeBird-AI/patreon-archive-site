@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理ページ - アーカイブ登録・編集</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/auth.js" defer></script>
+  <script src="/admin.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>管理ページ</h1>
+    <button id="goHome">ホームに戻る</button>
+  </header>
+
+  <section id="stats">
+    <h2>アクセス統計</h2>
+    <p>総訪問者数：<span id="visitorTotal">--</span></p>
+    <p>スマホ：<span id="visitorMobile">--</span> / PC：<span id="visitorDesktop">--</span></p>
+  </section>
+
+  <section id="entry-form">
+    <h2>アーカイブ情報登録・編集</h2>
+    <form id="archiveForm"> ... </form>
+    <p id="formMessage"></p>
+  </section>
+
+  <section id="entryList">
+    <h2>既存エントリー一覧</h2>
+    <div id="entries"></div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <title>Patreon支援者限定アーカイブ</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="auth.js" defer></script>
+  <script src="archive.js" defer></script>
+</head>
+<body>
+  <!-- ハンバーガー（モバイル向けカテゴリ開閉ボタン） -->
+  <div id="hamburger" class="hamburger">☰ カテゴリ</div>
+
+  <!-- 左：カテゴリリスト -->
+  <aside id="tag-list" class="sidebar"></aside>
+
+  <!-- 右：メインコンテンツ -->
+  <main class="main-content">
+    <!-- ログイン前表示 -->
+    <section id="login-section" class="login-section">
+      <p id="login-status">ログインしてください。</p>
+      <button id="login-btn" class="btn">Discordでログイン</button>
+    </section>
+
+    <!-- ログイン後表示 -->
+    <section id="welcome-section" class="welcome-section" style="display: none;">
+      <p id="welcome-status">ようこそ、<span id="username"></span> さん！</p>
+      <button id="logout-btn" class="btn">ログアウト</button>
+    </section>
+
+    <!-- アーカイブ表示エリア -->
+    <section id="content" class="content-section" style="display: none;">
+      <input type="text" id="search-box" class="search-box" placeholder="キャラ・作品名で検索" />
+      <div id="archive" class="archive-container"></div>
+    </section>
+  </main>
+</body>
+</html>

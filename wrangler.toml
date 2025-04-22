@@ -1,6 +1,14 @@
-# wrangler.toml
-name               = "patreon-archive-site"      # Cloudflare 上のスクリプト名
-account_id         = "763a47af6a6b725d409035080552cd6f"       # ダッシュボードで確認した 32 文字の英数字
-compatibility_date = "2025-04-20"                # 今日の日付 (YYYY‑MM‑DD)
-main               = "Worker.js"                 # エントリポイントファイル
-workers_dev        = true                         # workers.dev サブドメインにデプロイ
+name               = "patreon-archive-site"
+account_id         = "763a47af6a6b725d409035080552cd6f"
+compatibility_date = "2025-04-22"
+main               = "Worker.js"
+workers_dev        = true
+
+kv_namespaces = [
+  { binding = "VISITS_KV", id = "dc0e93639d424a549daa6b5e1f86e735" },
+  { binding = "DATA_KV",   id = "d77c88955e2e4b9a84f7ce5e0e515b8e" }
+]
+
+[assets]
+binding   = "ASSETS"
+directory = "./public"

@@ -1,34 +1,105 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>管理ページ - アーカイブ登録・編集</title>
-  <link rel="stylesheet" href="/style.css" />
-  <script src="/auth.js" defer></script>
-  <script src="/admin.js" defer></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>管理者ページ</title>
+  <link rel="stylesheet" href="/dist/style.css"/>
 </head>
-<body>
-  <header>
-    <h1>管理ページ</h1>
-    <button id="goHome">ホームに戻る</button>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+  <header class="flex items-center justify-between bg-white shadow p-4">
+    <h1 class="text-xl font-bold">管理者ダッシュボード</h1>
+    <div class="space-x-2">
+      <a href="/" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">アーカイブへ</a>
+    </div>
   </header>
 
-  <section id="stats">
-    <h2>アクセス統計</h2>
-    <p>総訪問者数：<span id="visitorTotal">--</span></p>
-    <p>スマホ：<span id="visitorMobile">--</span> / PC：<span id="visitorDesktop">--</span></p>
-  </section>
+  <main class="p-4 space-y-8">
 
-  <section id="entry-form">
-    <h2>アーカイブ情報登録・編集</h2>
-    <form id="archiveForm"> ... </form>
-    <p id="formMessage"></p>
-  </section>
+    <!-- 新規エントリー追加 -->
+    <section id="add-entry">
+      <h2 class="text-lg font-semibold mb-2">新規エントリー追加</h2>
+      <form id="add-form" class="mb-8 p-4 bg-white border rounded space-y-4">
+        <div>
+          <label class="block">タイトル
+            <input name="title" required class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">Patreon URL
+            <input name="patreonUrl" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">BOOTH URL
+            <input name="boothUrl" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">ZIP URL
+            <input name="url" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">サムネイルURL
+            <input name="thumbnail" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">タグ（カンマ区切り）
+            <input name="tags" placeholder="tag1,tag2,tag3" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <label class="block">Type
+            <input name="type" required class="w-full border p-1 rounded"/>
+          </label>
+          <label class="block">Series
+            <input name="series" required class="w-full border p-1 rounded"/>
+          </label>
+          <label class="block">Character
+            <input name="character" required class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div>
+          <label class="block">Date (YYYYMMDD)
+            <input name="date" required pattern="\d{8}" class="w-full border p-1 rounded"/>
+          </label>
+        </div>
+        <div class="text-right">
+          <button type="submit" class="px-4 py-1 bg-green-200 rounded hover:bg-green-300">
+            追加
+          </button>
+        </div>
+      </form>
+    </section>
 
-  <section id="entryList">
-    <h2>既存エントリー一覧</h2>
-    <div id="entries"></div>
-  </section>
+    <!-- 以下、省略: 訪問者統計・既存エントリー管理 -->
+    <section>
+      <h2 class="text-lg font-semibold mb-2">訪問者統計</h2>
+      <table class="w-full text-left border">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-3 py-2">ユーザー</th>
+            <th class="px-3 py-2">PC</th>
+            <th class="px-3 py-2">Mobile</th>
+          </tr>
+        </thead>
+        <tbody id="visits-stats"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-semibold mb-2">エントリー管理</h2>
+      <div id="editor-sidebar"
+           class="w-64 p-2 bg-gray-100 rounded space-y-1 overflow-auto float-left">
+      </div>
+      <div id="editor-main" class="ml-72"></div>
+    </section>
+
+  </main>
+
+  <script src="/admin.js"></script>
 </body>
 </html>

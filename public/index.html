@@ -3,38 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <title>Patreon支援者限定アーカイブ</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="auth.js" defer></script>
-  <script src="archive.js" defer></script>
+  <link rel="stylesheet" href="dist/style.css" />
 </head>
-<body>
-  <!-- ハンバーガー（モバイル向けカテゴリ開閉ボタン） -->
-  <div id="hamburger" class="hamburger">☰ カテゴリ</div>
+<body class="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800">
 
-  <!-- 左：カテゴリリスト -->
-  <aside id="tag-list" class="sidebar"></aside>
+  <!-- トークン取得＆ハッシュ消去 -->
+  <script>
+    if (location.hash.includes('token=')) {
+      const p = new URLSearchParams(location.hash.slice(1));
+      const t = p.get('token');
+      if (t) localStorage.setItem('jwt_token', t);
+      history.replaceState(null, '', location.pathname);
+    }
+  </script>
 
-  <!-- 右：メインコンテンツ -->
-  <main class="main-content">
-    <!-- ログイン前表示 -->
-    <section id="login-section" class="login-section">
-      <p id="login-status">ログインしてください。</p>
-      <button id="login-btn" class="btn">Discordでログイン</button>
-    </section>
+  <!-- サイドバー -->
+  <aside id="sidebar"
+         class="hidden md:block w-64 p-4 bg-gray-100 border-r border-gray-200 h-screen overflow-auto">
+    <h2 class="text-xl font-bold mb-4">カテゴリ</h2>
+    <nav id="sidebar-nav" class="space-y-1"></nav>
+    <button id="clear-filter"
+            class="mt-4 w-full py-2 bg-red-200 rounded-lg text-sm hover:bg-red-300 hidden">
+      選択解除
+    </button>
+    <!-- Owner用リンク差し込み -->
+    <div id="admin-link-container" class="mt-4"></div>
+  </aside>
 
-    <!-- ログイン後表示 -->
-    <section id="welcome-section" class="welcome-section" style="display: none;">
-      <p id="welcome-status">ようこそ、<span id="username"></span> さん！</p>
-      <button id="logout-btn" class="btn">ログアウト</button>
-    </section>
+  <!-- メイン -->
+  <div class="flex-1 flex flex-col">
+    <!-- モバイルメニュー -->
+    <div class="md:hidden flex items-center justify-between p-4 bg-white shadow mb-2">
+      <button id="menu-button"
+              class="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+        メニュー
+      </button>
+      <button id="mobile-clear"
+              class="px-3 py-2 bg-red-200 rounded-lg hover:bg-red-300 transition hidden">
+        選択解除
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden bg-white shadow p-2 mb-2">
+      <nav id="mobile-nav" class="space-y-1 text-sm"></nav>
+      <!-- Owner用リンク差し込み -->
+      <div id="mobile-admin-container" class="mt-4"></div>
+    </div>
 
-    <!-- アーカイブ表示エリア -->
-    <section id="content" class="content-section" style="display: none;">
-      <input type="text" id="search-box" class="search-box" placeholder="キャラ・作品名で検索" />
-      <div id="archive" class="archive-container"></div>
-    </section>
-  </main>
+    <h1 class="text-2xl font-bold px-4 mb-4">アーカイブ一覧</h1>
+
+    <!-- カード塊全体に左右パディング -->
+    <div class="page-wrap flex-1">
+      <div id="archive-container"
+           class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-center"></div>
+    </div>
+  </div>
+
+  <script src="archive.js"></script>
 </body>
 </html>

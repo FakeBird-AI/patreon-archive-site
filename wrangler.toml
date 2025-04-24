@@ -12,3 +12,7 @@ kv_namespaces = [
 [assets]
 binding   = "ASSETS"
 directory = "./public"
+
+[build]
+command = "npm run tw:build"
+upload = { format = "service-worker", dir = "public" }

@@ -1,216 +1,222 @@
-// archive.js
+document.addEventListener('DOMContentLoaded', async () => {
+  const $  = (s,p=document) => p.querySelector(s);
+  const $$ = (s,p=document) => Array.from(p.querySelectorAll(s));
 
-(() => {
-  // Cloudflare Worker のエンドポイント
-  const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
+  // ── モバイルメニュー開閉 ──
+  $('#menu-button').addEventListener('click', () =>
+    $('#mobile-menu').classList.toggle('hidden')
+  );
 
-  let selectedCharacter = null;
-
-  // YYYYMMDD形式 → Date オブジェクトに変換
-  function parseDate(dateStr) {
-    const y = parseInt(dateStr.slice(0, 4), 10);
-    const m = parseInt(dateStr.slice(4, 6), 10) - 1;
-    const d = parseInt(dateStr.slice(6, 8), 10);
-    return new Date(y, m, d);
+  // ── トークン取得＆ハッシュ消去 ──
+  if (location.hash.includes('token=')) {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const t = params.get('token');
+    if (t) localStorage.setItem('jwt_token', t);
+    history.replaceState(null, '', location.pathname);
   }
 
-  // ZIPリンク／メッセージを返す
-  function getZipLinkContent(item) {
-    const PRIORITY = {
-      "1350114997040316458": 4, // Owner
-      "1350114869780680734": 3, // Premium
-      "1350114736242557010": 2, // Special
-      "1350114379391045692": 1  // Standard
-    };
-    let max = 0, role = null;
-    (window.userRoles || []).forEach(r => {
-      if ((PRIORITY[r] || 0) > max) {
-        max = PRIORITY[r];
-        role = r;
-      }
+  // ── 認証・ロール取得 ──
+  const token = localStorage.getItem('jwt_token');
+  if (!token) return showLogin();
+  let data;
+  try {
+    const res = await fetch('/verify', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
+    data = await res.json();
+    if (!data.loggedIn) throw '';
+  } catch {
+    return showLogin();
+  }
+  const roles      = data.roles || [];
+  const isOwner    = roles.includes('1350114997040316458');
+  const isPremium  = roles.includes('1350114869780680734');
+  const isSpecial  = roles.includes('1350114736242557010');
+  const isStandard = roles.includes('1350114379391045692');
 
-    const fileDate    = parseDate(item.date);
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    const recent = fileDate >= oneMonthAgo;
-
-    switch (role) {
-      case "1350114997040316458": // Owner
-      case "1350114869780680734": // Premium
-        return `<a href="${item.url}" target="_blank">▶ ZIPリンク</a>`;
-      case "1350114736242557010": // Special
-        return recent
-          ? `<a href="${item.url}" target="_blank">▶ ZIPリンク</a>`
-          : "ZIPリンク(1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。)";
-      case "1350114379391045692": // Standard
-        return recent
-          ? "PremiumもしくはSpecialにアップグレードすると閲覧可能です。"
-          : "ZIPリンク(1ヶ月より前のアーカイブです。Premiumにアップグレードすると閲覧可能です。)";
-      default:
-        return "このコンテンツにアクセスできません。";
-    }
+  // ── データ取得 ──
+  let items = [];
+  try {
+    items = await (await fetch('data.json')).json();
+    items.sort((a,b) => Number(b.date) - Number(a.date));
+  } catch {
+    $('#archive-container').innerHTML =
+      '<p class="text-red-600">アーカイブ読み込み失敗</p>';
+    return;
   }
 
-  // Owner用の「管理ページへ」リンク追加
-  function appendAdminLink() {
-    if ((window.userRoles || []).includes("1350114997040316458")) {
-      const linkDiv = document.createElement("div");
-      linkDiv.style.marginTop = "2rem";
-      linkDiv.style.textAlign = "center";
-      linkDiv.innerHTML = '<a href="admin.html" target="_blank">管理ページへ</a>';
-      document.getElementById("tag-list").appendChild(linkDiv);
-    }
+  // ── カテゴリツリー構築 ──
+  const tree = {};
+  items.forEach(item => {
+    const cat = item.category || {};
+    const t = cat.type      || '未分類';
+    const s = cat.series    || '未分類';
+    const c = cat.character || '未分類';
+    tree[t]         = tree[t] || {};
+    tree[t][s]      = tree[t][s] || new Set();
+    tree[t][s].add(c);
+  });
+
+  // ── サイドバー／モバイルNav構築 ──
+  buildSidebar(tree, '#sidebar-nav');
+  buildSidebar(tree, '#mobile-nav');
+
+  // ── Owner 用管理ページリンク ──
+  if (isOwner) {
+    const adminBtn = document.createElement('a');
+    adminBtn.href = '/admin';
+    adminBtn.textContent = '管理者ページ';
+    adminBtn.className = 'sidebar-link type bg-green-200 hover:bg-green-300 mt-4';
+    $('#admin-link-container').appendChild(adminBtn);
+    $('#mobile-admin-container').appendChild(adminBtn.cloneNode(true));
   }
 
-  async function initArchive() {
-    console.log("✅ initArchive() 開始");
+  // ── 絞り込み処理 ──
+  let activeFilter = null;
+  $('#sidebar').addEventListener('click', e => onFilterClick(e, '#clear-filter'));
+  $('#mobile-menu').addEventListener('click', e => onFilterClick(e, '#mobile-clear'));
+  $('#clear-filter').addEventListener('click', clearFilter);
+  $('#mobile-clear').addEventListener('click', clearFilter);
 
-    const archiveDiv = document.getElementById("archive");
-    const tagList    = document.getElementById("tag-list");
-    const searchBox  = document.getElementById("search-box");
+  function onFilterClick(e, clearSel) {
+    const btn = e.target.closest('.sidebar-link.character');
+    if (!btn) return;
+    activeFilter = JSON.parse(btn.dataset.filter);
+    $$('.sidebar-link').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    $(clearSel).classList.remove('hidden');
+    if (clearSel === '#mobile-clear') $('#mobile-menu').classList.add('hidden');
+    renderArchive();
+  }
 
-    // モバイルメニュー閉じる
-    tagList.classList.remove("open");
+  function clearFilter() {
+    activeFilter = null;
+    $$('.sidebar-link').forEach(el => el.classList.remove('active'));
+    $('#clear-filter').classList.add('hidden');
+    $('#mobile-clear').classList.add('hidden');
+    renderArchive();
+  }
 
-    // データ取得＆JSON化
-    let data = [];
-    try {
-      const res = await fetch(`${API_ORIGIN}/data.json`, { credentials: "include" });
-      data = await res.json();
-    } catch (e) {
-      console.error("data.json の取得失敗", e);
-      archiveDiv.innerHTML = "<p>アーカイブの読み込みに失敗しました。</p>";
+  // ── アーカイブ描画 ──
+  renderArchive();
+  function renderArchive() {
+    const container = $('#archive-container');
+    container.innerHTML = '';
+    const list = activeFilter
+      ? items.filter(it => {
+          const cat = it.category || {};
+          return cat.type === activeFilter.type &&
+                 cat.series === activeFilter.series &&
+                 cat.character === activeFilter.character;
+        })
+      : items;
+
+    if (list.length === 0) {
+      container.innerHTML = '<p class="text-gray-600">該当するアーカイブがありません</p>';
       return;
     }
-
-    if (!Array.isArray(data) || data.length === 0) {
-      archiveDiv.innerHTML = "<p>アーカイブがありません。</p>";
-      return;
-    }
-
-    // 新しい順ソート
-    data.sort((a, b) => b.date.localeCompare(a.date));
-
-    // タグツリー構築
-    const tree = {};
-    data.forEach(item => {
-      const { type, series, character } = item.category;
-      tree[type] ??= {};
-      tree[type][series] ??= [];
-      if (!tree[type][series].includes(character)) {
-        tree[type][series].push(character);
-      }
-    });
-
-    Object.entries(tree).forEach(([type, seriesMap]) => {
-      const typeDiv    = document.createElement("div");
-      const typeToggle = document.createElement("div");
-      typeToggle.textContent = `▶ ${type}`;
-      typeToggle.style = "font-weight:bold;cursor:pointer;margin:0.5rem 0";
-      const seriesDiv = document.createElement("div");
-      seriesDiv.style.display = "none"; seriesDiv.style.marginLeft = "1rem";
-
-      typeToggle.addEventListener("click", () => {
-        const open = seriesDiv.style.display === "block";
-        seriesDiv.style.display = open ? "none" : "block";
-        typeToggle.textContent = `${open ? "▶" : "▼"} ${type}`;
-        if (window.innerWidth <= 768) tagList.classList.remove("open");
-      });
-
-      typeDiv.append(typeToggle, seriesDiv);
-      tagList.appendChild(typeDiv);
-
-      Object.entries(seriesMap).forEach(([series, chars]) => {
-        const seriesToggle = document.createElement("div");
-        seriesToggle.textContent = `▶ ${series}`;
-        seriesToggle.style = "cursor:pointer;margin-left:0.5rem";
-        const charList = document.createElement("div");
-        charList.style.display = "none"; charList.style.marginLeft = "1.5rem";
-
-        seriesToggle.addEventListener("click", () => {
-          const open = charList.style.display === "block";
-          charList.style.display = open ? "none" : "block";
-          seriesToggle.textContent = `${open ? "▶" : "▼"} ${series}`;
-          if (window.innerWidth <= 768) tagList.classList.remove("open");
-        });
-
-        chars.forEach(character => {
-          const btn = document.createElement("div");
-          btn.textContent = `👤 ${character}`;
-          btn.style = "cursor:pointer;margin:0.2rem 0";
-          btn.addEventListener("click", () => {
-            selectedCharacter = character;
-            render();
-            if (window.innerWidth <= 768) tagList.classList.remove("open");
-          });
-          charList.appendChild(btn);
-        });
-
-        seriesDiv.append(seriesToggle, charList);
-      });
-    });
-
-    // 描画関数
-    function render() {
-      archiveDiv.innerHTML = "";
-      const kw = searchBox.value.trim().toLowerCase();
-      const filtered = data.filter(item => {
-        const okChar = !selectedCharacter || item.category.character === selectedCharacter;
-        const okKw = !kw
-          || item.title.toLowerCase().includes(kw)
-          || item.category.series.toLowerCase().includes(kw)
-          || item.category.character.toLowerCase().includes(kw)
-          || item.tags.some(t => t.toLowerCase().includes(kw));
-        return okChar && okKw;
-      });
-
-      if (!filtered.length) {
-        archiveDiv.innerHTML = "<p>該当する作品が見つかりませんでした。</p>";
-        return;
-      }
-
-      filtered.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start">
-            <img src="${item.thumbnail}" style="width:120px;object-fit:cover;border:1px solid #ccc" />
-            <div>
-              <strong>${item.title}</strong><br>
-              <small>${item.date}</small><br>
-              ${item.boothUrl ? `<a href="${item.boothUrl}" target="_blank">▶ BOOTHリンク</a><br>` : ""}
-              ${item.patreonUrl ? `<a href="${item.patreonUrl}" target="_blank">▶ Patreonリンク</a><br>` : ""}
-              ${getZipLinkContent(item)}
-            </div>
-          </div>
-        `;
-        archiveDiv.appendChild(div);
-      });
-    }
-
-    render();
-    searchBox.addEventListener("input", render);
-
-    // キャラ選択解除ボタン
-    const clearBtn = document.createElement("button");
-    clearBtn.textContent = "キャラ選択解除";
-    clearBtn.style = "display:block;margin:0.5rem";
-    clearBtn.addEventListener("click", () => {
-      selectedCharacter = null;
-      render();
-      if (window.innerWidth <= 768) tagList.classList.remove("open");
-    });
-    tagList.appendChild(clearBtn);
-
-    // 管理ページリンク
-    appendAdminLink();
-
-    // ハンバーガー開閉
-    document.getElementById("hamburger")
-      .addEventListener("click", () => tagList.classList.toggle("open"));
+    list.forEach(item => container.append(createCard(item)));
   }
 
-  // auth.js から呼び出せるようウォールに公開
-  window.initArchive = initArchive;
-})();
+  function createCard(item) {
+    const card = document.createElement('div');
+    card.className = 'archive-card';
+
+    if (item.thumbnail) {
+      const img = document.createElement('img');
+      img.src = item.thumbnail;
+      img.alt = item.title;
+      img.className = 'thumbnail';
+      card.append(img);
+    }
+
+    const h2 = document.createElement('h2');
+    h2.textContent = item.title;
+    h2.className = 'text-lg font-semibold mb-2';
+    card.append(h2);
+
+    const links = document.createElement('div');
+    links.className = 'mt-2';
+
+    // ▶ Patreon / BOOTH
+    if (item.patreonUrl) addLink(links, item.patreonUrl, 'Patreonリンク');
+    if (item.boothUrl)   addLink(links, item.boothUrl,   'BOOTHリンク');
+
+    // ▶ ZIP or disabled
+    const created     = new Date(item.date.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'));
+    const oneMonthAgo = new Date(); oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    if (isOwner || isPremium || (isSpecial && created >= oneMonthAgo)) {
+      addLink(links, item.url, 'ZIPリンク');
+    } else if (isSpecial && created < oneMonthAgo) {
+      // Special かつ 1ヶ月より前
+      addDisabled(links, 'ZIPリンク(Premiumで閲覧可能です)');
+    } else if (isStandard && created < oneMonthAgo) {
+      // Standard かつ 1ヶ月より前
+      addDisabled(links, 'ZIPリンク(Premiumで閲覧可能です)');
+    }  else {
+      // Standard
+      addDisabled(links, 'ZIPリンク(Special,Premiumで閲覧可能です)');
+    }
+
+    card.append(links);
+    return card;
+  }
+
+  function addLink(parent, href, label) {
+    const a = document.createElement('a');
+    a.href = href;
+    a.target = '_blank';
+    a.textContent = '▶ ' + label;
+    a.className = 'archive-link text-blue-600';
+    parent.append(a);
+  }
+
+  function addDisabled(parent, text) {
+    const span = document.createElement('span');
+    span.textContent = '▶ ' + text;
+    span.className = 'archive-link disabled';
+    parent.append(span);
+  }
+
+  function buildSidebar(tree, sel) {
+    const nav = $(sel);
+    nav.innerHTML = '';
+    for (const [type, seriesObj] of Object.entries(tree)) {
+      const btnType = createBtn(type, 'type');
+      const wrapSeries = document.createElement('div');
+      wrapSeries.className = 'hidden';
+      btnType.addEventListener('click', () => wrapSeries.classList.toggle('hidden'));
+      nav.append(btnType, wrapSeries);
+
+      for (const [series, chars] of Object.entries(seriesObj)) {
+        const btnSeries = createBtn(series, 'series');
+        const wrapChar = document.createElement('div');
+        wrapChar.className = 'hidden';
+        btnSeries.addEventListener('click', () => wrapChar.classList.toggle('hidden'));
+        wrapSeries.append(btnSeries, wrapChar);
+
+        chars.forEach(ch => {
+          const btnChar = createBtn(ch, 'character', { type, series, character: ch });
+          wrapChar.append(btnChar);
+        });
+      }
+    }
+    if (sel === '#sidebar-nav') $('#clear-filter').classList.add('hidden');
+    else                         $('#mobile-clear').classList.add('hidden');
+  }
+
+  function createBtn(text, level, filter = null) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.className = `sidebar-link ${level}`;
+    if (filter) btn.dataset.filter = JSON.stringify(filter);
+    return btn;
+  }
+
+  function showLogin() {
+    document.body.innerHTML =
+      `<p class="text-center mt-20">ログインが必要です。` +
+      `<a href="/login" class="text-blue-600 underline">ログインページへ</a></p>`;
+  }
+});

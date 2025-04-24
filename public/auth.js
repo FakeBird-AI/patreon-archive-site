@@ -1,96 +1,62 @@
 // auth.js
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const usernameSpan = document.getElementById('username');
+  const sidebar = document.getElementById('sidebar');
+  const search = document.getElementById('search');
+  const main = document.getElementById('main-content');
 
-// Cloudflare Worker のエンドポイントを定義
-const API_ORIGIN = "https://patreon-archive-site.fakebird279.workers.dev";
-
-document.addEventListener("DOMContentLoaded", () => {
-  // --- Cookie取得ヘルパー ---
-  function getCookie(name) {
-    const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return m ? decodeURIComponent(m[1]) : null;
+  function updateUI(loggedIn, username) {
+    if (loggedIn) {
+      loginBtn.classList.add('hidden');
+      logoutBtn.classList.remove('hidden');
+      usernameSpan.textContent = username;
+      sidebar.classList.remove('hidden');
+      search.classList.remove('hidden');
+      main.classList.remove('hidden');
+    } else {
+      loginBtn.classList.remove('hidden');
+      logoutBtn.classList.add('hidden');
+      usernameSpan.textContent = '';
+      sidebar.classList.add('hidden');
+      search.classList.add('hidden');
+      main.classList.add('hidden');
+    }
   }
 
-  // --- 要素取得 ---
-  const loginSec     = document.getElementById("login-section");
-  const welcomeSec   = document.getElementById("welcome-section");
-  const contentSec   = document.getElementById("content");
-  const tagList      = document.getElementById("tag-list");    // サイドメニュー
-  const hamburger    = document.getElementById("hamburger");   // ハンバーガー
-  const loginStatus  = document.getElementById("login-status");
-  const usernameSpan = document.getElementById("username");
-  const loginBtn     = document.getElementById("login-btn");
-  const logoutBtn    = document.getElementById("logout-btn");
-
-  // --- ログアウト時クエリ (?logout=true) の処理 ---
+  // ログアウト処理
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("logout") === "true") {
-    // Cookie を削除
-    document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    loginStatus.textContent = "ログアウトしました。";
-    // URLフラグメントとクエリをクリア
-    history.replaceState(null, "", window.location.pathname);
+  if (urlParams.get('logout') === 'true') {
+    document.cookie = 'session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    history.replaceState(null, '', window.location.pathname);
   }
 
-  // 未ログイン時はメニュー類を隠す
-  if (tagList)   tagList.style.display   = "none";
-  if (hamburger) hamburger.style.display = "none";
-
-  // URLフラグメント (#token=…) があれば Cookie に保存
-  if (window.location.hash.startsWith("#token=")) {
+  // ハッシュトークン保存
+  if (window.location.hash.startsWith('#token=')) {
     const token = window.location.hash.substring(7);
     document.cookie = `session=${token}; Path=/; Secure; SameSite=Lax; Max-Age=86400`;
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    history.replaceState(null, '', window.location.pathname);
   }
 
-  // session トークン取得
-  const sessionToken = getCookie("session");
-
-  // --- 認証フロー ---
+  const sessionToken = getSessionToken();
   if (sessionToken) {
-    fetch(`${API_ORIGIN}/verify`, {
-      method: "GET",
-      credentials: "include",
-      headers: { "Authorization": `Bearer ${sessionToken}` }
+    fetch(`${location.origin}/verify`, {
+      credentials: 'include',
+      headers: { Authorization: `Bearer ${sessionToken}` }
     })
       .then(res => res.json())
-      .then(data => {
-        if (data.loggedIn) {
-          // ログイン成功：UI切り替え
-          loginSec.style.display   = "none";
-          welcomeSec.style.display = "block";
-          contentSec.style.display = "block";
-          if (tagList)   tagList.style.display   = "block";
-          if (hamburger) hamburger.style.display = "block";
-          usernameSpan.textContent = data.username || "ユーザー";
-          window.userRoles         = data.roles   || [];
-
-          // アーカイブ初期化
-          if (typeof initArchive === "function") initArchive();
-        } else {
-          // 認証失敗：ログイン画面へ
-          loginSec.style.display   = "block";
-          welcomeSec.style.display = "none";
-          contentSec.style.display = "none";
-        }
-      })
-      .catch(err => {
-        console.error("Verify request failed:", err);
-        loginSec.style.display   = "block";
-        welcomeSec.style.display = "none";
-        contentSec.style.display = "none";
-      });
+      .then(data => updateUI(data.loggedIn, data.username))
+      .catch(() => updateUI(false));
   } else {
-    // 未ログイントークン時
-    loginSec.style.display   = "block";
-    welcomeSec.style.display = "none";
-    contentSec.style.display = "none";
+    updateUI(false);
   }
 
-  // Discordログイン／ログアウト
-  loginBtn.addEventListener("click", () => {
-    window.location.href = `${API_ORIGIN}/login`;
-  });
-  logoutBtn.addEventListener("click", () => {
-    window.location.href = `${API_ORIGIN}/logout`;
-  });
+  loginBtn.addEventListener('click', () => window.location.href = `${location.origin}/login`);
+  logoutBtn.addEventListener('click', () => window.location.href = `${location.origin}/logout`);
+
+  function getSessionToken() {
+    const m = document.cookie.match(/session=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 });
